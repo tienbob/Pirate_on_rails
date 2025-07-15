@@ -1,0 +1,36 @@
+<header class="navbar navbar-expand-lg navbar-dark bg-gradient shadow-sm py-2">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/">
+      <img src="/icon.png" alt="Pirate On Rails" width="32" height="32" class="me-2 align-middle">
+      Pirate On Rails
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <%= link_to 'Movies', movies_path, class: 'nav-link' %>
+        </li>
+        <li class="nav-item">
+          <%= link_to 'Users', users_path, class: 'nav-link' %>
+        </li>
+        <% if user_signed_in? %>
+          <li class="nav-item">
+            <%= link_to 'Logout', destroy_user_session_path, method: :delete, class: 'nav-link' %>
+          </li>
+        <% else %>
+          <li class="nav-item">
+            <%= link_to 'Login', new_user_session_path, class: 'nav-link' %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</header>
+
+<style>
+  .bg-gradient {
+    background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
+  }
+</style>

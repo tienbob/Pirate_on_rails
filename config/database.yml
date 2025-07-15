@@ -1,0 +1,33 @@
+default: &default
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  timeout: 5000
+
+development:
+  adapter: sqlite3
+  database: db/development.sqlite3
+
+test:
+  adapter: sqlite3
+  database: db/test.sqlite3
+
+production:
+  primary: &primary_production
+    adapter: postgresql
+    encoding: unicode
+    database: pirate_on_rails_production
+    username: pirate_on_rails
+    password: <%= ENV["PIRATE_ON_RAILS_DATABASE_PASSWORD"] %>
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    timeout: 5000
+  cache:
+    <<: *primary_production
+    database: pirate_on_rails_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: pirate_on_rails_production_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *primary_production
+    database: pirate_on_rails_production_cable
+    migrations_paths: db/cable_migrate

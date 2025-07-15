@@ -1,0 +1,75 @@
+
+<style>
+  body.anime-bg {
+    background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1500&q=80') center center/cover no-repeat fixed;
+    min-height: 100vh;
+    position: relative;
+  }
+  .glass-card {
+    background: rgba(255,255,255,0.15);
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+  .anime-title {
+    font-family: 'Mochiy Pop One', 'Segoe UI', 'Arial', sans-serif;
+    font-size: 2.2rem;
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: 0 2px 8px #ff0080;
+  }
+  .anime-badge {
+    font-family: 'Mochiy Pop One', 'Segoe UI', 'Arial', sans-serif;
+    font-size: 1.1rem;
+    padding: 0.5em 1.2em;
+    border-radius: 2em;
+    background: linear-gradient(90deg, #ff8c00 0%, #ff0080 100%);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(255,0,128,0.15);
+  }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet">
+<script>
+  document.body.classList.add('anime-bg');
+</script>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="glass-card p-5 mb-4">
+        <div class="d-flex align-items-center mb-4">
+          <% if @movie.video_file.attached? %>
+            <video class="rounded-3 shadow-sm me-4" width="320" controls>
+              <source src="<%= url_for(@movie.video_file) %>" type="video/mp4">
+              Your browser does not support the video tag.
+            </video>
+          <% else %>
+            <div class="bg-secondary text-white rounded-3 d-flex align-items-center justify-content-center" style="width:320px;height:180px;">
+              <span>No video</span>
+            </div>
+          <% end %>
+          <div>
+            <h2 class="anime-title mb-1"><%= @movie.title %></h2>
+            <p class="text-white-50 mb-2" style="font-family:'Mochiy Pop One',sans-serif;">
+              <%= @movie.release_date.strftime('%d/%m/%Y') if @movie.release_date %>
+            </p>
+            <% if @movie.is_pro %>
+              <span class="anime-badge">Pro</span>
+            <% else %>
+              <span class="anime-badge" style="background:linear-gradient(90deg,#43e97b 0%,#38f9d7 100%);">Free</span>
+            <% end %>
+          </div>
+        </div>
+        <p class="fs-5 text-white" style="font-family:'Mochiy Pop One',sans-serif;"><%= @movie.description %></p>
+        <div class="mt-4">
+          <%= link_to 'Back to Movies', movies_path, class: 'btn btn-outline-light' %>
+          <% if policy(@movie).edit? %>
+            <%= link_to 'Edit', edit_movie_path(@movie), class: 'btn btn-primary ms-2' %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
