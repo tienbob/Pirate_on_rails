@@ -1,0 +1,79 @@
+<style>
+  body.bg-tags-index {
+    background: linear-gradient(135deg, #f06292 0%, #ba68c8 50%, #64b5f6 100%);
+    min-height: 100vh;
+    font-family: 'Mochiy Pop One', 'Segoe UI', 'Arial', sans-serif;
+    color: #fff;
+  }
+  .card {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+  .table {
+    color: #fff;
+  }
+  .table th {
+    color: rgba(255, 255, 255, 0.8);
+  }
+  .table td {
+    color: rgba(255, 255, 255, 0.9);
+  }
+  .table a {
+    color: #fff;
+    text-decoration: none;
+  }
+  .table a:hover {
+    text-decoration: underline;
+  }
+  .btn-gradient {
+    background: linear-gradient(90deg, #ff8c00 0%, #ff0080 100%);
+    color: #fff;
+    border: none;
+    transition: background 0.3s ease-in-out;
+  }
+  .btn-gradient:hover {
+    background: linear-gradient(90deg, #ff0080 0%, #ff8c00 100%);
+    color: #fff;
+  }
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet">
+
+<script>
+  document.body.classList.add('bg-tags-index');
+</script>
+
+<div class="container py-5">
+  <div class="card p-4">
+    <h1 class="text-center text-white mb-4">Tags</h1>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @tags.each do |tag| %>
+          <tr>
+            <td><%= link_to tag.name, tag_path(tag) %></td>
+            <td><%= tag.description %></td>
+            <td>
+              <% if current_user&.admin? %>
+                <%= link_to 'Edit', edit_tag_path(tag), class: 'btn btn-sm btn-primary' %>
+                <%= link_to 'Delete', tag_path(tag), method: :delete, data: { confirm: 'Are you sure?' }, class: 'btn btn-sm btn-danger' %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <% if current_user&.admin? %>
+      <%= link_to 'New Tag', new_tag_path, class: 'btn btn-success' %>
+    <% end %>
+    <%= link_to 'Back to Movies', movies_path, class: 'btn btn-secondary mt-3' %>
+  </div>
+</div>

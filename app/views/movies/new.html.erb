@@ -1,0 +1,44 @@
+<style>
+  body.bg-movie-form {
+    background: linear-gradient(135deg, #f06292 0%, #ba68c8 50%, #64b5f6 100%);
+    min-height: 100vh;
+    font-family: 'Mochiy Pop One', 'Segoe UI', 'Arial', sans-serif;
+    color: #fff;
+  }
+  .card {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+  .text-white {
+    color: #fff !important;
+  }
+  .btn-secondary {
+    background-color: rgba(108, 117, 125, 0.5);
+    border-color: rgba(108, 117, 125, 0.5);
+    color: #fff;
+  }
+  .btn-secondary:hover {
+    background-color: rgba(108, 117, 125, 0.7);
+    border-color: rgba(108, 117, 125, 0.7);
+  }
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet">
+
+<script>
+  document.body.classList.add('bg-movie-form');
+</script>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-lg rounded-4 p-4">
+        <h1 class="text-center text-white mb-4">New Movie</h1>
+        <%= render 'form', movie: @movie %>
+        <%= link_to 'Back', movies_path, class: 'btn btn-secondary mt-3' %>
+      </div>
+    </div>
+  </div>
+</div>

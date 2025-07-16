@@ -1,0 +1,57 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card shadow-lg rounded-4 p-4">
+        <h2 class="mb-4 text-center">Upgrade to Pro</h2>
+        <p class="text-center mb-4">Unlock all features by upgrading your account to Pro!</p>
+        <form id="payment-form" action="/payments/stripe_upgrade" method="post">
+          <div class="mb-3">
+            <label class="form-label">Amount</label>
+            <input type="number" class="form-control" value="9.99" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="card-element" class="form-label">Card Details</label>
+            <div id="card-element" class="form-control"></div>
+            <div id="card-errors" class="text-danger mt-2"></div>
+          </div>
+          <input type="hidden" name="user_id" value="<%= current_user.id %>">
+          <div class="d-grid gap-2">
+            <button id="submit-button" class="btn btn-primary btn-lg">Pay & Upgrade</button>
+          </div>
+        </form>
+        <div class="mt-3 text-center">
+          <%= link_to 'Back', movies_path, class: 'btn btn-secondary' %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    var stripe = Stripe('<%= Rails.application.credentials.dig(:stripe, :public_key) %>');
+    var elements = stripe.elements();
+    var card = elements.create('card');
+    card.mount('#card-element');
+
+    var form = document.getElementById('payment-form');
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      document.getElementById('submit-button').disabled = true;
+      stripe.createToken(card).then(function(result) {
+        if (result.error) {
+          document.getElementById('card-errors').textContent = result.error.message;
+          document.getElementById('submit-button').disabled = false;
+        } else {
+          var hiddenInput = document.createElement('input');
+          hiddenInput.setAttribute('type', 'hidden');
+          hiddenInput.setAttribute('name', 'stripeToken');
+          hiddenInput.setAttribute('value', result.token.id);
+          form.appendChild(hiddenInput);
+          form.submit();
+        }
+      });
+    });
+  });
+</script>

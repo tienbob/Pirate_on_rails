@@ -1,8 +1,4 @@
 
-<script>
-  document.body.classList.remove('bg-user-show');
-</script>
-
 <div class="container py-5">
   <div class="row justify-content-center">
     <div class="col-lg-6">
@@ -13,7 +9,7 @@
             <h2 class="fw-bold mb-1 text-white"><%= @user.name %></h2>
             <p class="text-muted mb-2"><%= @user.email %></p>
             <% if @user.admin? %>
-              <span class="badge bg-gradient text-white px-3 py-2 rounded-pill">Admin</span>
+              <span class="badge px-3 py-2 rounded-pill">Admin</span>
             <% elsif @user.pro? %>
               <span class="badge bg-primary px-3 py-2 rounded-pill">Pro</span>
             <% else %>
@@ -29,9 +25,3 @@
   </div>
 </div>
 
-<style>
-  .bg-gradient {
-    background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
-    color: #fff;
-  }
-</style>

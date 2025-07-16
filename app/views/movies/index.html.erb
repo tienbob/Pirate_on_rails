@@ -1,15 +1,74 @@
 <style>
   body.bg-movie-index {
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    /* More vibrant gradient */
     min-height: 100vh;
+    font-family: 'Mochiy Pop One', 'Segoe UI', 'Arial', sans-serif; /* Apply anime font */
+    color: #fff; /* Default text color */
+  }
+
+  .card {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+  }
+
+  .card-title {
+    color: #fff;
+    text-shadow: 0 0 5px rgba(255,255,255,0.5);
+  }
+
+  .card-text {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .badge {
+    font-family: 'Mochiy Pop One', sans-serif;
+  }
+
+  .btn-gradient {
+    background: linear-gradient(90deg, #ff8c00 0%, #ff0080 100%);
+    color: #fff;
+    border: none;
+    transition: background 0.3s ease-in-out;
+  }
+
+  .btn-gradient:hover {
+    background: linear-gradient(90deg, #ff0080 0%, #ff8c00 100%);
+    color: #fff;
+  }
+
+  /* Style for video placeholder */
+  .video-placeholder {
+    background: rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 180px;
+    font-size: 1.2em;
   }
 </style>
+
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet">
+
 <script>
   document.body.classList.add('bg-movie-index');
 </script>
 
 <div class="container py-5">
   <h1 class="text-center text-white mb-5">Movie Gallery</h1>
+  <%= render 'search_form' %>
+  <% if current_user&.admin? %>
+    <div class="text-center mb-4">
+      <%= link_to 'New Movie', new_movie_path, class: 'btn btn-gradient' %>
+    </div>
+  <% end %>
   <div class="row g-4">
     <% @movies.each do |movie| %>
       <div class="col-md-6 col-lg-4">
@@ -20,19 +79,26 @@
               Your browser does not support the video tag.
             </video>
           <% else %>
-            <div class="bg-secondary text-white rounded-top-4 d-flex align-items-center justify-content-center" style="height:180px;">
-              <span>No video</span>
+            <div class="video-placeholder rounded-top-4">
+              <span>No video available</span>
             </div>
           <% end %>
           <div class="card-body d-flex flex-column">
             <h5 class="card-title fw-bold"><%= movie.title %></h5>
-            <p class="card-text text-muted mb-2"><%= movie.release_date.strftime('%B %d, %Y') if movie.release_date %></p>
+            <p class="card-text mb-2"><%= movie.release_date.strftime('%B %d, %Y') if movie.release_date %></p>
             <% if movie.is_pro %>
               <span class="badge bg-gradient text-white mb-2">Pro</span>
             <% else %>
               <span class="badge bg-success mb-2">Free</span>
             <% end %>
             <p class="card-text flex-grow-1"><%= truncate(movie.description, length: 80) %></p>
+            <% if movie.tags.any? %>
+              <div class="mb-2">
+                <% movie.tags.limit(3).each do |tag| %>
+                  <span class="badge bg-warning text-dark me-1"><%= tag.name %></span>
+                <% end %>
+              </div>
+            <% end %>
             <%= link_to 'View', movie_path(movie), class: 'btn btn-gradient mt-2' %>
           </div>
         </div>
@@ -40,10 +106,3 @@
     <% end %>
   </div>
 </div>
-
-<style>
-  .bg-gradient {
-    background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%);
-    color: #fff;
-  }
-</style>

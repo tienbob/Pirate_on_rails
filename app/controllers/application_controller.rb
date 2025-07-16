@@ -2,7 +2,7 @@ class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
   before_action :configure_permitted_parameters, if: :devise_controller?
-  include Pundit
+  include Pundit::Authorization
 
   # Prevent CSRF attacks by raising an exception.
   # For APIs, you may want to use :null_session instead.

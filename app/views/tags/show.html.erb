@@ -1,0 +1,56 @@
+<style>
+  body.bg-tags {
+    background: linear-gradient(135deg, #f06292 0%, #ba68c8 50%, #64b5f6 100%);
+    min-height: 100vh;
+    font-family: 'Mochiy Pop One', 'Segoe UI', 'Arial', sans-serif;
+    color: #fff;
+  }
+  .card {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+  .text-white {
+    color: #fff !important;
+  }
+  .btn-primary {
+    background: linear-gradient(90deg, #ff8c00 0%, #ff0080 100%);
+    border: none;
+    color: #fff;
+  }
+  .btn-primary:hover {
+    background: linear-gradient(90deg, #ff0080 0%, #ff8c00 100%);
+    color: #fff;
+  }
+  .btn-danger {
+    background-color: #e53935;
+    border-color: #e53935;
+  }
+  .btn-danger:hover {
+    background-color: #c62828;
+    border-color: #c62828;
+  }
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet">
+
+<script>
+  document.body.classList.add('bg-tags');
+</script>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card p-4">
+        <h1 class="text-center text-white mb-4"><%= @tag.name %></h1>
+        <p class="text-white"><strong>Description:</strong> <%= @tag.description %></p>
+        <% if current_user&.admin? %>
+          <%= link_to 'Edit', edit_tag_path(@tag), class: 'btn btn-primary me-2' %>
+          <%= link_to 'Delete', tag_path(@tag), method: :delete, data: { confirm: 'Are you sure?' }, class: 'btn btn-danger' %>
+        <% end %>
+        <%= link_to 'Back to Tags', tags_path, class: 'btn btn-secondary mt-3' %>
+      </div>
+    </div>
+  </div>
+</div>

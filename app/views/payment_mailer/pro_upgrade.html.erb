@@ -1,0 +1,11 @@
+<h2>Thank you for upgrading to Pro!</h2>
+<p>Hello <%= @user.name %>,</p>
+<p>Your payment of <strong>$<%= @payment.amount %></strong> was successful. You now have full access to all Pro features on Pirate On Rails.</p>
+<h4>Receipt</h4>
+<ul>
+  <li>Transaction ID: <%= @payment.id %></li>
+  <li>Date: <%= @payment.created_at.strftime('%B %d, %Y') %></li>
+  <li>Amount: $<%= @payment.amount %> <%= @payment.currency.upcase %></li>
+</ul>
+<p>If you have any questions, reply to this email.</p>
+<p>Enjoy your Pro access!</p>
