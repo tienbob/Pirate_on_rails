@@ -304,10 +304,6 @@ GEM
     rack (3.1.16)
     rack-cors (1.1.1)
       rack (>= 2.0.0)
-    rack-protection (4.1.1)
-      base64 (>= 0.1.0)
-      logger (>= 1.6.0)
-      rack (>= 3.0.0, < 4)
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -350,6 +346,8 @@ GEM
       erb
       psych (>= 4.0.0)
     redis (4.8.1)
+    redis-client (0.25.1)
+      connection_pool
     regexp_parser (2.10.0)
     reline (0.6.1)
       io-console (~> 0.5)
@@ -433,11 +431,12 @@ GEM
     sentry-ruby-core (4.9.2)
       concurrent-ruby
       faraday
-    sidekiq (6.0.4)
-      connection_pool (>= 2.2.2)
-      rack (>= 2.0.0)
-      rack-protection (>= 2.0.0)
-      redis (>= 4.1.0)
+    sidekiq (8.0.5)
+      connection_pool (>= 2.5.0)
+      json (>= 2.9.0)
+      logger (>= 1.6.2)
+      rack (>= 3.1.0)
+      redis-client (>= 0.23.2)
     solid_cable (3.0.11)
       actioncable (>= 7.2)
       activejob (>= 7.2)
@@ -540,7 +539,7 @@ DEPENDENCIES
   rubocop-rails-omakase
   selenium-webdriver
   sentry-rails (~> 4.0)
-  sidekiq (~> 6.0)
+  sidekiq (~> 8.0)
   solid_cable
   solid_cache
   solid_queue
