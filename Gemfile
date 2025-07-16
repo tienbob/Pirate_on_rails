@@ -55,7 +55,7 @@ gem "stripe", "~> 5.0"
 gem "devise", "~> 4.8"
 
 # Use RSpec for testing [https://rspec.info/]
-gem "rspec-rails", "~> 5.0"
+gem "rspec-rails", "~> 8.0"
 
 # Use FactoryBot for test data generation 
 gem "factory_bot_rails", "~> 6.0"
