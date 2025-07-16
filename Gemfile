@@ -40,7 +40,7 @@ gem "thruster", require: false
 
 # Use Active Storage for file uploads [https://guides.rubyonrails.org/active_storage_overview.html]
 gem "image_processing", "~> 1.2"
-gem "mini_magick", "~> 4.9"
+gem "mini_magick", "~> 5.3"
 
 # Use Redis for caching and background jobs [https://redis.io/]
 gem "redis", "~> 4.0"
