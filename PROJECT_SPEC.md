@@ -71,5 +71,26 @@ Pirate on Rails is a fullstack Ruby on Rails web application for streaming anime
 - Tag selection and search UI are custom and require JS to function fully.
 - For development, SQLite is supported; for production, use PostgreSQL.
 
+## Estimates
+
+### Time Estimate 
+
+| Feature/Task                | Estimated Hours |
+|-----------------------------|-----------------|
+| Project setup & scaffolding | 4               |
+| User authentication (Devise)| 3               |
+| Admin/user roles (Pundit)   | 2               |
+| Movie CRUD & video upload   | 6               |
+| Tag system (UI & backend)   | 5               |
+| Search & filters (Elasticsearch) | 6         |
+| Payment integration (Stripe)| 5               |
+| UI/UX (Bootstrap, anime style, Hotwire) | 8   |
+| Testing (RSpec, factories)  | 4               |
+| Email/receipt integration   | 2               |
+| Deployment & docs           | 2               |
+| **Total**                   | **47 hours**    |
+
+*Estimates may vary based on feature changes.*
+
 ---
 For further details, see the README or contact the project maintainer.
