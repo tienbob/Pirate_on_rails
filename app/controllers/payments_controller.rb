@@ -1,28 +1,75 @@
 class PaymentsController < ApplicationController
-  protect_from_forgery except: :stripe_upgrade
+  protect_from_forgery
 
-  def stripe_upgrade
-    unless current_user && !current_user.admin? && !current_user.pro?
-      redirect_to movies_path, alert: 'You are not eligible for upgrade.'
-      return
-    end
-    token = params[:stripeToken]
+  # Stripe Checkout Session for subscription
+  def create_checkout_session
+    prices = Stripe::Price.list(
+      lookup_keys: [params[:lookup_key]],
+      expand: ['data.product']
+    )
     begin
-      charge = Stripe::Charge.create({
-        amount: 999, # $9.99 in cents
-        currency: 'usd',
-        source: token,
-        description: "Upgrade to Pro for user ##{current_user.id}"
+      session = Stripe::Checkout::Session.create({
+        mode: 'subscription',
+        line_items: [{
+          quantity: 1,
+          price: prices.data[0].id
+        }],
+        success_url: payments_success_url + '?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url: payments_upgrade_url,
       })
-      # Mark user as pro
-      current_user.update(pro: true)
-      payment = Payment.create(user_id: current_user.id, amount: 9.99, currency: 'usd', status: 'completed')
-      # Send confirmation email
-      PaymentMailer.with(user: current_user, payment: payment).pro_upgrade.deliver_later
-      redirect_to success_payments_path, notice: 'Payment successful! You are now a Pro user.'
-    rescue Stripe::CardError => e
-      redirect_to upgrade_payment_path, alert: e.message
+      redirect_to session.url, allow_other_host: true
+    rescue StandardError => e
+      render json: { error: { message: e.message } }, status: :bad_request
     end
+  end
+
+  # Stripe Billing Portal Session
+  def create_portal_session
+    checkout_session_id = params[:session_id]
+    checkout_session = Stripe::Checkout::Session.retrieve(checkout_session_id)
+    return_url = payments_success_url
+    session = Stripe::BillingPortal::Session.create({
+      customer: checkout_session.customer,
+      return_url: return_url
+    })
+    redirect_to session.url, allow_other_host: true
+  end
+
+  # Stripe Webhook endpoint
+  skip_before_action :verify_authenticity_token, only: [:webhook]
+  def webhook
+    webhook_secret = ENV['STRIPE_API_KEY']
+    payload = request.body.read
+    event = nil
+    if webhook_secret.present?
+      sig_header = request.env['HTTP_STRIPE_SIGNATURE']
+      begin
+        event = Stripe::Webhook.construct_event(payload, sig_header, webhook_secret)
+      rescue JSON::ParserError
+        head :bad_request and return
+      rescue Stripe::SignatureVerificationError
+        Rails.logger.warn '⚠️  Webhook signature verification failed.'
+        head :bad_request and return
+      end
+    else
+      data = JSON.parse(payload, symbolize_names: true)
+      event = Stripe::Event.construct_from(data)
+    end
+    event_type = event['type']
+    data_object = event['data']['object']
+    case event_type
+    when 'customer.subscription.deleted'
+      Rails.logger.info "Subscription canceled: #{event.id}"
+    when 'customer.subscription.updated'
+      Rails.logger.info "Subscription updated: #{event.id}"
+    when 'customer.subscription.created'
+      Rails.logger.info "Subscription created: #{event.id}"
+    when 'customer.subscription.trial_will_end'
+      Rails.logger.info "Subscription trial will end: #{event.id}"
+    when 'entitlements.active_entitlement_summary.updated'
+      Rails.logger.info "Active entitlement summary updated: #{event.id}"
+    end
+    render json: { status: 'success' }
   end
   def upgrade
     unless current_user && !current_user.admin? && !current_user.pro?
@@ -31,24 +78,21 @@ class PaymentsController < ApplicationController
     end
     @payment = Payment.new
   end
-  before_action :require_admin, only: [:index]
+  before_action :require_admin, only: [:index, :new, :create]
   def index
     @payments = Payment.all
   end
 
-  private
-
-  def require_admin
-    unless current_user && current_user.admin?
-      redirect_to movies_path, alert: 'You are not authorized to view payments.'
-    end
-  end
   def show
     @payment = Payment.find(params[:id])
   end
 
   def new
     @payment = Payment.new
+    respond_to do |format|
+      format.html
+      format.json { render json: @payment }
+    end
   end
 
   def create
@@ -64,6 +108,12 @@ class PaymentsController < ApplicationController
   end
 
   private
+
+  def require_admin
+    unless current_user && current_user.admin?
+      redirect_to movies_path, alert: 'You are not authorized to view payments.'
+    end
+  end
 
   def payment_params
     params.require(:payment).permit(:amount, :currency, :status, :user_id)

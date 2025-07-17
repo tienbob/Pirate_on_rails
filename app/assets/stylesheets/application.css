@@ -1,3 +1,15 @@
+/* Cartoonic font for headings, tables, and buttons */
+@import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap');
+.payments-table th,
+.payments-table td {
+  text-align: center;
+}
+/* Ensure payments table background is dark */
+.payments-table th, .payments-table td {
+  background: rgba(255,255,255,0.85);
+  color: #429321 !important;
+  box-shadow: 0 2px 8px rgba(106,17,203,0.10);
+}
 /*
  * This is a manifest file that'll be compiled into application.css.
  *
@@ -8,3 +20,78 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+body.bg-main-gradient {
+  /* Bamboo green gradient */
+  background: linear-gradient(135deg, #b4ec51 0%, #429321 100%);
+  min-height: 100vh;
+  color: #fff;
+}
+.card, .navbar, .footer {
+  border-radius: 1rem !important;
+  box-shadow: 0 2px 16px rgba(106,17,203,0.10);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: none;
+}
+.navbar {
+  background: rgba(0, 0, 0, 0.5);
+}
+.navbar .nav-link, .navbar .navbar-brand {
+  color: #fff !important;
+}
+.btn-gradient {
+  background: linear-gradient(90deg, #ff8c00 0%, #ff0080 100%);
+  color: #fff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(255,0,128,0.15);
+  transition: background 0.3s;
+}
+.btn-gradient:hover {
+  background: linear-gradient(90deg, #ff0080 0%, #ff8c00 100%);
+  color: #fff;
+}
+.badge.bg-gradient {
+  background: linear-gradient(90deg, #ff8c00 0%, #ff0080 100%);
+  color: #fff;
+}
+footer.bg-dark {
+  background: rgba(0, 0, 0, 0.5) !important;
+  color: #fff;
+}
+main {
+  position: relative;
+  z-index: 1;
+  flex: 1 0 auto;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  height: auto;
+  width: 100vw;
+  box-sizing: border-box;
+}
+/* Use Bootstrap grid for dynamic layout */
+/* Bootstrap grid layout: only keep background and padding */
+.side-strip {
+  background: #000;
+  opacity: 0.8;
+}
+.main-content {
+  background: transparent;
+  padding: 2rem;
+}
+body, html {
+  height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: 'Mochiy Pop One', 'Segoe UI', 'Arial', sans-serif !important;
+  letter-spacing: 1px;
+}
+footer {
+  flex-shrink: 0;
+}

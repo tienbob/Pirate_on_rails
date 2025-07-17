@@ -1,10 +1,10 @@
 class TagsController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin, only: [:new, :create, :edit, :update, :destroy]
+  before_action :require_admin
   # Only allow admins to perform certain actions
   def require_admin
     unless current_user && current_user.admin?
-      redirect_to tags_path, alert: 'You are not authorized to perform this action.'
+      redirect_to root_path, alert: 'Access denied. Only admins can manage tags.'
     end
   end
 
