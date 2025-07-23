@@ -50,7 +50,7 @@ gem "redis", "~> 4.0"
 gem "sidekiq", "~> 6.0"
 
 # Use Stripe for payment processing [https://stripe.com/docs/api]
-gem "stripe", "~> 5.0"
+gem "stripe", "~> 15.3"
 
 # Use Devise for user authentication 
 gem "devise", "~> 4.8"
