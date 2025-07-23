@@ -59,7 +59,7 @@ gem "devise", "~> 4.8"
 gem "factory_bot_rails", "~> 6.0"
 
 # Use Faker for generating fake data in tests 
-gem "faker", "~> 2.0"
+gem "faker", "~> 3.5"
 
 # Use RuboCop for code linting and formatting [https://rubocop.org]
 gem "rubocop", "~> 1.0"
