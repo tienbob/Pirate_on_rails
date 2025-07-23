@@ -89,7 +89,7 @@ gem "rack-cors", "~> 1.1"
 gem "mailgun-ruby", "~> 1.2"
 
 # Use Sentry for error tracking and performance monitoring [https://sentry.io]
-gem "sentry-rails", "~> 4.0"
+gem "sentry-rails", "~> 5.26"
 
 # Use Rollbar for error tracking [https://rollbar.com]
 gem "rollbar", "~> 3.0"
