@@ -3,7 +3,8 @@ class UsersController < ApplicationController
   before_action :require_admin, only: [:index]
 
   def index
-    @users = User.all
+    # Kaminari pagination: params[:page] is used by default
+    @users = User.page(params[:page]).per(5)
   end
 
   def show
@@ -17,9 +18,29 @@ class UsersController < ApplicationController
   def create
     @user = User.new(user_params)
     if @user.save
+      UserMailerJob.perform_later(@user.id)
       redirect_to @user, notice: 'User was successfully created.'
     else
       render :new
+    end
+  end
+  
+  def update
+    @user = User.find(params[:id])
+    if @user.update(user_params)
+      redirect_to @user, notice: 'User was successfully updated.'
+    else
+      render :edit
+    end
+  end 
+  
+  def destroy
+    @user = User.find(params[:id])
+    authorize @user
+    if @user.destroy    
+      redirect_to users_path, notice: 'User was successfully deleted.'
+    else
+      redirect_to users_path, alert: 'Failed to delete user.'
     end
   end
 

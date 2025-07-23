@@ -3,5 +3,4 @@ class Tag < ApplicationRecord
   has_many :movies, through: :movie_tags
 
   validates :name, presence: true, uniqueness: true
-  validate :name_format 
 end

@@ -1,11 +1,23 @@
+
+// This Stimulus controller handles client-side interactivity for the movie search form.
+// It works together with Turbo Frames (for partial page updates) and Turbo Streams (for real-time updates)
+// to provide a modern Hotwire experience.
 import { Controller } from "@hotwired/stimulus"
 
+
+// Stimulus controller for the movie search form.
+// Handles tag selection and year dropdown logic.
+// The form and results should be wrapped in Turbo Frames in the view for best UX.
 export default class extends Controller {
   static targets = ["tagSelect", "selectedTags", "yearFrom", "yearTo"]
 
   connect() {
     console.log("MovieSearchFormController connected");
-    // Tag selection logic
+
+    // --- Tag selection logic ---
+    // This logic lets users select/deselect tags for searching movies.
+    // The selected tags are stored in a hidden input for form submission.
+    // When used with Turbo Frames, submitting the form will only update the results frame.
     let selected = [];
     if (this.hasTagSelectTarget && this.hasSelectedTagsTarget) {
       this.tagSelectTarget.querySelectorAll('.tag-option').forEach(tagEl => {
@@ -23,6 +35,8 @@ export default class extends Controller {
           this.selectedTagsTarget.value = selected.join(',');
         });
       });
+      // On form submit, add hidden inputs for each selected tag.
+      // Turbo will submit the form via AJAX and update the results frame.
       document.getElementById('movie-search-form').addEventListener('submit', e => {
         document.querySelectorAll('input[name="tags[]"]').forEach(el => el.remove());
         selected.forEach(tag => {
@@ -35,7 +49,9 @@ export default class extends Controller {
       });
     }
 
-    // Year dropdown logic
+    // --- Year dropdown logic ---
+    // Dynamically updates the 'year to' dropdown based on the 'year from' selection.
+    // This is pure client-side logic, handled by Stimulus.
     if (this.hasYearFromTarget && this.hasYearToTarget) {
       const updateYearToOptions = () => {
         const fromYear = parseInt(this.yearFromTarget.value);

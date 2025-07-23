@@ -41,6 +41,8 @@ gem "thruster", require: false
 gem "image_processing", "~> 1.2"
 gem "mini_magick", "~> 4.9"
 
+gem 'whenever', require: false
+
 # Use Redis for caching and background jobs [https://redis.io/]
 gem "redis", "~> 4.0"
 
@@ -52,9 +54,6 @@ gem "stripe", "~> 5.0"
 
 # Use Devise for user authentication 
 gem "devise", "~> 4.8"
-
-# Use RSpec for testing [https://rspec.info/]
-gem "rspec-rails", "~> 5.0"
 
 # Use FactoryBot for test data generation 
 gem "factory_bot_rails", "~> 6.0"
@@ -125,6 +124,7 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+  gem 'pundit-matchers'
 end
 
 gem "pg", group: :production

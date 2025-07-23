@@ -23,9 +23,15 @@ class MoviePolicy < ApplicationPolicy
   end
 
   class Scope < ApplicationPolicy::Scope
-    # NOTE: Be explicit about which records you allow access to!
-    # def resolve
-    #   scope.all
-    # end
+    def resolve
+      if user.admin? || user.pro?
+        scope.all
+      elsif user.free?
+        # Free users: non-pro movies OR pro movies older than 3 months
+        scope.where("is_pro = ? OR (is_pro = ? AND release_date <= ?)", false, true, 3.months.ago)
+      else
+        scope.none
+      end
+    end
   end
 end

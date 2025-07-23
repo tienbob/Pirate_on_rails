@@ -9,7 +9,8 @@ class TagsController < ApplicationController
   end
 
   def index
-    @tags = Tag.all
+    # Kaminari pagination: params[:page] is used by default
+    @tags = Tag.page(params[:page]).per(5)
   end
 
   def show
@@ -28,6 +29,7 @@ class TagsController < ApplicationController
       render :new
     end
   end
+
   def edit
     @tag = Tag.find(params[:id])
   end
@@ -39,6 +41,7 @@ class TagsController < ApplicationController
       render :edit
     end
   end
+
   def destroy
     @tag = Tag.find(params[:id])
     @tag.destroy

@@ -2,7 +2,8 @@ class MoviesController < ApplicationController
   before_action :authenticate_user!
   before_action :require_admin, only: [:new, :create, :edit, :update, :destroy]
   before_action :set_movie, only: [:show, :edit, :update, :destroy]
-  after_action :verify_authorized, except: [:index, :show]
+  after_action :verify_authorized, except: [:index, :show, :search]
+  after_action :verify_policy_scoped, only: [:index, :search]
   # Only allow admins to perform certain actions
   def require_admin
     unless current_user && current_user.admin?
@@ -36,12 +37,13 @@ class MoviesController < ApplicationController
   end
 
   # Other actions remain unchanged
-  def index 
-    @movies = Movie.all
+  def index
+    # Kaminari pagination: params[:page] is used by default
+    @movies = policy_scope(Movie).page(params[:page]).per(12)
   end
 
   def show
-    @movie = Movie.find(params[:id])
+    @movie = policy_scope(Movie).find(params[:id])
     authorize @movie
   end
 
@@ -52,6 +54,7 @@ class MoviesController < ApplicationController
 
   def create
     @movie = Movie.new(movie_params)
+    authorize @movie
     if @movie.save
       redirect_to @movie, notice: 'Movie was successfully created.'
     else
@@ -70,8 +73,12 @@ class MoviesController < ApplicationController
     end
     if year_from.present? || year_to.present?
       range = {}
-      range[:gte] = year_from if year_from.present?
-      range[:lte] = year_to if year_to.present?
+      if year_from.present?
+        range[:gte] = "#{year_from}-01-01"
+      end
+      if year_to.present?
+        range[:lte] = "#{year_to}-12-31"
+      end
       search_conditions << { range: { release_date: range } }
     end
     if tags.present?
@@ -83,15 +90,18 @@ class MoviesController < ApplicationController
       end
     end
     if search_conditions.any?
-      @movies = Movie.__elasticsearch__.search({
+      # Elasticsearch returns an array, convert to AR relation for policy_scope
+      movies = Movie.__elasticsearch__.search({
         query: {
           bool: {
             must: search_conditions
           }
         }
       }).records
+      ar_movies = Movie.where(id: movies.map(&:id))
+      @movies = policy_scope(ar_movies).page(params[:page]).per(12)
     else
-      @movies = Movie.all
+      @movies = policy_scope(Movie).page(params[:page]).per(12)
     end
     render :index
   end

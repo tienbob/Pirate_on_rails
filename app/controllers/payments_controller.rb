@@ -98,6 +98,7 @@ class PaymentsController < ApplicationController
   def create
     @payment = Payment.new(payment_params)
     if @payment.save
+      PaymentMailerJob.perform_later(@payment.user_id, @payment.id)
       redirect_to @payment, notice: 'Payment was successfully created.'
     else
       render :new
@@ -107,6 +108,28 @@ class PaymentsController < ApplicationController
   def success
   end
 
+  def cancel
+    redirect_to movies_path, alert: 'Payment was canceled.'
+  end
+  def edit
+    @payment = Payment.find(params[:id])
+  end 
+  def update
+    @payment = Payment.find(params[:id])
+    if @payment.update(payment_params)
+      redirect_to @payment, notice: 'Payment was successfully updated.'
+    else
+      render :edit
+    end
+  end
+  def destroy
+    @payment = Payment.find(params[:id])
+    if @payment.destroy
+      redirect_to payments_path, notice: 'Payment was successfully deleted.'
+    else
+      redirect_to payments_path, alert: 'Failed to delete payment.'
+    end
+  end
   private
 
   def require_admin
