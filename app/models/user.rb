@@ -10,6 +10,7 @@ class User < ApplicationRecord
 
   has_many :payments
   has_many :movies
+  has_many :chats
 
   validates :name, presence: true
   validates :email, presence: true, uniqueness: true

@@ -1,4 +1,5 @@
 class MoviesController < ApplicationController
+  include Searchable
   before_action :authenticate_user!
   before_action :require_admin, only: [:new, :create, :edit, :update, :destroy]
   before_action :set_movie, only: [:show, :edit, :update, :destroy]
@@ -63,46 +64,8 @@ class MoviesController < ApplicationController
   end
 
   def search
-    query = params[:q]
-    year_from = params[:year_from]
-    year_to = params[:year_to]
-    tags = params[:tags]
-    search_conditions = []
-    if query.present?
-      search_conditions << { match: { title: query } }
-    end
-    if year_from.present? || year_to.present?
-      range = {}
-      if year_from.present?
-        range[:gte] = "#{year_from}-01-01"
-      end
-      if year_to.present?
-        range[:lte] = "#{year_to}-12-31"
-      end
-      search_conditions << { range: { release_date: range } }
-    end
-    if tags.present?
-      tags.each do |tag|
-        search_conditions << { nested: {
-          path: 'tags',
-          query: { match: { 'tags.name': tag } }
-        }}
-      end
-    end
-    if search_conditions.any?
-      # Elasticsearch returns an array, convert to AR relation for policy_scope
-      movies = Movie.__elasticsearch__.search({
-        query: {
-          bool: {
-            must: search_conditions
-          }
-        }
-      }).records
-      ar_movies = Movie.where(id: movies.map(&:id))
-      @movies = policy_scope(ar_movies).page(params[:page]).per(12)
-    else
-      @movies = policy_scope(Movie).page(params[:page]).per(12)
-    end
+    movies = search_movies(params)
+    @movies = policy_scope(movies).page(params[:page]).per(12)
     render :index
   end
 

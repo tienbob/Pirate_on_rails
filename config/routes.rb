@@ -33,5 +33,7 @@ end
   post 'payments/webhook', to: 'payments#webhook', as: :webhook_payments
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
+  post "/chats", to: "chats#create"
+  get "/chats/search", to: "chats#search"
 end
 
