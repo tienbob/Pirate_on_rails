@@ -40,7 +40,17 @@ class MoviesController < ApplicationController
   # Other actions remain unchanged
   def index
     # Kaminari pagination: params[:page] is used by default
-    @movies = policy_scope(Movie).page(params[:page]).per(12)
+    page = (params[:page] || 1).to_i
+    if page <= 3
+      # Always call policy_scope for Pundit compliance
+      movies_scope = policy_scope(Movie)
+      cached_movies = Rails.cache.fetch(["movies_index", page, current_user&.id], expires_in: 10.minutes) do
+        movies_scope.page(page).per(12).to_a
+      end
+      @movies = Kaminari.paginate_array(cached_movies, total_count: movies_scope.count).page(page).per(12)
+    else
+      @movies = policy_scope(Movie).page(page).per(12)
+    end
   end
 
   def show
@@ -66,7 +76,11 @@ class MoviesController < ApplicationController
   def search
     movies = search_movies(params)
     @movies = policy_scope(movies).page(params[:page]).per(12)
-    render :index
+    if request.headers['Turbo-Frame']
+      render partial: 'movies/results', locals: { movies: @movies }
+    else
+      render :index
+    end
   end
 
   private

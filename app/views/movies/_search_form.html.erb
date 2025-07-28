@@ -1,5 +1,5 @@
 <div data-controller="movie">
-<form id="movie-search-form" action="<%= search_movies_path %>" method="get" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.5rem; width:100%;">
+<form id="movie-search-form" action="<%= search_movies_path %>" method="get" data-turbo-frame="movies" style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.5rem; width:100%;">
   <div style="display:flex; gap:0.5rem; align-items:center; width:100%;">
     <input type="text" name="q" class="form-control" placeholder="Search by name..." style="flex:2 1 0; min-width:0;">
     <select id="year-from" name="year_from" class="form-control" style="flex:1 1 0; min-width:0;" data-movie-target="yearFrom">
