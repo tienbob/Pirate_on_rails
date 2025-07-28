@@ -41,15 +41,16 @@ class MoviesController < ApplicationController
   def index
     # Kaminari pagination: params[:page] is used by default
     page = (params[:page] || 1).to_i
+    per_page = 8
+    movies_scope = policy_scope(Movie).includes(:tags)
     if page <= 3
-      # Always call policy_scope for Pundit compliance
-      movies_scope = policy_scope(Movie)
-      cached_movies = Rails.cache.fetch(["movies_index", page, current_user&.id], expires_in: 10.minutes) do
-        movies_scope.page(page).per(12).to_a
+      cached_ids = Rails.cache.fetch(["movies_index_ids", page, current_user&.id], expires_in: 10.minutes) do
+        movies_scope.page(page).per(per_page).pluck(:id)
       end
-      @movies = Kaminari.paginate_array(cached_movies, total_count: movies_scope.count).page(page).per(12)
+      @movies = movies_scope.where(id: cached_ids).order(:id)
+      @movies = Kaminari.paginate_array(@movies, total_count: movies_scope.count).page(page).per(per_page)
     else
-      @movies = policy_scope(Movie).page(page).per(12)
+      @movies = movies_scope.page(page).per(per_page)
     end
   end
 

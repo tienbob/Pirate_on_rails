@@ -23,7 +23,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="card border-0 shadow-lg rounded-4 h-100">
             <% if movie.video_file.attached? %>
-              <video class="card-img-top rounded-top-4 preview-video" width="100%" height="180" controls preload="metadata">
+              <video class="card-img-top rounded-top-4 preview-video" width="100%" height="180" controls preload="metadata" loading="lazy">
                 <source src="<%= url_for(movie.video_file) %>#t=0,5" type="video/mp4">
                 Your browser does not support the video tag.
               </video>
@@ -48,7 +48,7 @@
                   <% end %>
                 </div>
               <% end %>
-              <%= link_to 'View', movie_path(movie), class: 'btn btn-gradient mt-2' %>
+              <%= link_to 'View', movie_path(movie), class: 'btn btn-gradient mt-2', data: { turbo: false } %>
             </div>
           </div>
         </div>
