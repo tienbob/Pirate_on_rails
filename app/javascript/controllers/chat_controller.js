@@ -4,9 +4,28 @@ export default class extends Controller {
   static targets = ["popup", "open", "close", "form", "input", "messages"];
 
   connect() {
-    this.openTarget.addEventListener("click", () => {
+    // Subscribe to Action Cable for live updates (always active)
+    if (!this.cableSubscribed) {
+      this.subscribeToChatChannel();
+      this.cableSubscribed = true;
+    }
+    this.openTarget.addEventListener("click", async () => {
       this.popupTarget.style.display = "flex";
       this.openTarget.style.display = "none";
+      // Fetch and display chat history
+      try {
+        const response = await fetch("/chats/history");
+        if (response.ok) {
+          const data = await response.json();
+          this.messagesTarget.innerHTML = "";
+          data.history.forEach(msg => {
+            this.appendMessage(msg);
+          });
+          this.messagesTarget.scrollTop = this.messagesTarget.scrollHeight;
+        }
+      } catch (err) {
+        // Optionally show error
+      }
     });
     this.closeTarget.addEventListener("click", () => {
       this.popupTarget.style.display = "none";
@@ -16,19 +35,15 @@ export default class extends Controller {
       e.preventDefault();
       const msg = this.inputTarget.value.trim();
       if (msg) {
-        // Show user message
-        const div = document.createElement("div");
-        div.textContent = msg;
-        div.style.margin = "8px 0";
-        div.style.textAlign = "right";
-        this.messagesTarget.appendChild(div);
+        // Show user message immediately
+        this.appendMessage({ user_message: msg });
         this.inputTarget.value = "";
         this.messagesTarget.scrollTop = this.messagesTarget.scrollHeight;
 
-        // Send to backend via AJAX (Hotwire convention: fetch, not jQuery)
+        // Send to backend via AJAX
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         try {
-          const response = await fetch("/chats", {
+          await fetch("/chats", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -36,27 +51,7 @@ export default class extends Controller {
             },
             body: JSON.stringify({ message: msg })
           });
-          if (response.ok) {
-            const data = await response.json();
-            if (data.response) {
-              const aiDiv = document.createElement("div");
-              aiDiv.textContent = data.response;
-              aiDiv.style.margin = "8px 0";
-              aiDiv.style.textAlign = "left";
-              aiDiv.style.color = "#007bff";
-              this.messagesTarget.appendChild(aiDiv);
-              this.messagesTarget.scrollTop = this.messagesTarget.scrollHeight;
-            }
-          } else {
-            // Error handling
-            const errDiv = document.createElement("div");
-            errDiv.textContent = "Error: Could not get response.";
-            errDiv.style.margin = "8px 0";
-            errDiv.style.textAlign = "left";
-            errDiv.style.color = "#dc3545";
-            this.messagesTarget.appendChild(errDiv);
-            this.messagesTarget.scrollTop = this.messagesTarget.scrollHeight;
-          }
+          // AI response will arrive via Action Cable
         } catch (err) {
           const errDiv = document.createElement("div");
           errDiv.textContent = "Network error.";
@@ -68,5 +63,46 @@ export default class extends Controller {
         }
       }
     });
+
+    // Helper to append messages
+    this.appendMessage = (msg) => {
+      if (msg.user_message) {
+        const userDiv = document.createElement("div");
+        userDiv.textContent = msg.user_message;
+        userDiv.style.margin = "8px 0";
+        userDiv.style.textAlign = "right";
+        userDiv.style.color = "#222";
+        this.messagesTarget.appendChild(userDiv);
+      }
+      if (msg.ai_response) {
+        const aiDiv = document.createElement("div");
+        aiDiv.textContent = msg.ai_response;
+        aiDiv.style.margin = "8px 0";
+        aiDiv.style.textAlign = "left";
+        aiDiv.style.color = "#007bff";
+        this.messagesTarget.appendChild(aiDiv);
+      }
+      this.messagesTarget.scrollTop = this.messagesTarget.scrollHeight;
+    };
+
+    // Action Cable subscription
+    this.subscribeToChatChannel = () => {
+      if (window.App && window.App.cable) {
+        this.subscription = window.App.cable.subscriptions.create({ channel: "ChatChannel" }, {
+          received: (data) => {
+            this.appendMessage(data);
+          }
+        });
+      } else if (window.cable) {
+        // For Rails 7 importmap default
+        import("@rails/actioncable").then(ActionCable => {
+          this.subscription = ActionCable.createConsumer().subscriptions.create({ channel: "ChatChannel" }, {
+            received: (data) => {
+              this.appendMessage(data);
+            }
+          });
+        });
+      }
+    };
   }
 }

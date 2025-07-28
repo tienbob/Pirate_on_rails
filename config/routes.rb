@@ -34,6 +34,7 @@ end
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
   post "/chats", to: "chats#create"
-  get "/chats/search", to: "chats#search"
+  get "/chats/movies_data", to: "chats#movies_data"
+  get "/chats/history", to: "chats#history"
 end
 
