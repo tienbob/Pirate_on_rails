@@ -111,7 +111,7 @@ export default class extends Controller {
       aiDiv.textContent = aiText;
       aiDiv.style.margin = "8px 0";
       aiDiv.style.textAlign = "left";
-      aiDiv.style.background = "#e3f2fd";
+      aiDiv.style.background = "#d4f8e8";
       aiDiv.style.color = "#222";
       aiDiv.style.borderRadius = "8px";
       aiDiv.style.padding = "10px 14px";

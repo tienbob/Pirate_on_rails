@@ -44,7 +44,7 @@ class MoviesController < ApplicationController
     per_page = 8
     movies_scope = policy_scope(Movie).includes(:tags)
     if page <= 3
-      cached_ids = Rails.cache.fetch(["movies_index_ids", page, current_user&.id], expires_in: 10.minutes) do
+      cached_ids = Rails.cache.fetch(["movies_index_ids", page, current_user&.id], expires_in: 60.minutes) do
         movies_scope.page(page).per(per_page).pluck(:id)
       end
       @movies = movies_scope.where(id: cached_ids).order(:id)
@@ -67,7 +67,9 @@ class MoviesController < ApplicationController
   def create
     @movie = Movie.new(movie_params)
     authorize @movie
+    tag_ids = params[:movie][:tag_ids] || []
     if @movie.save
+      @movie.tags = Tag.where(id: tag_ids)
       redirect_to @movie, notice: 'Movie was successfully created.'
     else
       render :new

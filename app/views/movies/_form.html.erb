@@ -41,8 +41,15 @@
           </div>
 
           <div class="mb-3">
-            <%= form.label :tags, class: 'form-label' %>
-            <%= form.collection_select :tag_ids, Tag.all, :id, :name, {}, { multiple: true, class: 'form-select' } %>
+            <%= form.label :tags, class: 'form-label text-white' %>
+            <div class="d-flex flex-wrap gap-2">
+              <% Tag.all.each do |tag| %>
+                <label class="btn btn-outline-info mb-2">
+                  <%= check_box_tag "movie[tag_ids][]", tag.id, movie.tags.include?(tag), id: "tag_#{tag.id}", class: "btn-check" %>
+                  <span><%= tag.name %></span>
+                </label>
+              <% end %>
+            </div>
           </div>
 
           <div class="d-grid gap-2">

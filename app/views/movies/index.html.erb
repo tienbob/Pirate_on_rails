@@ -23,13 +23,10 @@
         <div class="col-md-6 col-lg-4">
           <div class="card border-0 shadow-lg rounded-4 h-100">
             <% if movie.video_file.attached? %>
-              <video class="card-img-top rounded-top-4 preview-video" width="100%" height="180" controls preload="metadata" loading="lazy">
-                <source src="<%= url_for(movie.video_file) %>#t=0,5" type="video/mp4">
-                Your browser does not support the video tag.
-              </video>
+              <%= image_tag movie.video_file.preview(resize_to_limit: [320, 180]), class: "card-img-top rounded-top-4", alt: "#{movie.title} preview", loading: "lazy" %>
             <% else %>
               <div class="video-placeholder rounded-top-4">
-                <span>No video available</span>
+                <span>No image available</span>
               </div>
             <% end %>
             <div class="card-body d-flex flex-column">
@@ -57,16 +54,6 @@
     <div class="d-flex justify-content-center mt-4">
       <%= paginate @movies %>
     </div>
-    <script>
-      // Pause all preview videos after 5 seconds
-      document.querySelectorAll('.preview-video').forEach(function(video) {
-        video.addEventListener('play', function() {
-          setTimeout(function() {
-            video.pause();
-          }, 5000);
-        });
-      });
-    </script>
   </turbo-frame>
 
   <!--
