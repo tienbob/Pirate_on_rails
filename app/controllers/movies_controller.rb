@@ -1,10 +1,7 @@
 class MoviesController < ApplicationController
   include Searchable
   before_action :authenticate_user!
-  before_action :require_admin, only: [:new, :create, :edit, :update, :destroy]
-  before_action :set_movie, only: [:show, :edit, :update, :destroy]
-  after_action :verify_authorized, except: [:show, :search]
-  after_action :verify_policy_scoped, only: [:search]
+  before_action :require_admin, only: [:new, :create, :edit, :destroy]
   # Only allow admins to perform certain actions
   def require_admin
     unless current_user && current_user.admin?
@@ -12,27 +9,13 @@ class MoviesController < ApplicationController
     end
   end
 
-  # Ensure that the user is authorized for actions
-  def authorize_user
-    authorize @movie
-  end
-  
   # Actions for the MovieController
   def edit
-    authorize_user
-  end
-
-  def update
-    authorize_user
-    if @movie.update(movie_params)
-      redirect_to @movie, notice: 'Movie was successfully updated.'
-    else
-      render :edit
-    end
+    authorize @movie
   end
 
   def destroy
-    authorize_user
+    authorize @movie
     parent_series = @movie.series
     @movie.destroy
     redirect_to series_path(parent_series), notice: 'Episode was successfully deleted.'
@@ -65,7 +48,17 @@ class MoviesController < ApplicationController
     authorize @movie
     tag_ids = params[:movie][:tag_ids] || []
     if @movie.save
-      @movie.tags = Tag.where(id: tag_ids)
+      if @movie.series.present?
+        # Always sync: movie gets union of its own and series tags, series gets any new movie tags
+        movie_tags = Tag.where(id: tag_ids)
+        series_tags = @movie.series.tags
+        all_tags = (series_tags + movie_tags).uniq
+        @movie.tags = all_tags
+        new_tags = movie_tags - series_tags
+        @movie.series.tags << new_tags unless new_tags.empty?
+      else
+        @movie.tags = Tag.where(id: tag_ids)
+      end
       redirect_to @movie, notice: 'Movie was successfully created.'
     else
       render :new

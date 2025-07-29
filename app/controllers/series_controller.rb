@@ -72,6 +72,13 @@ class SeriesController < ApplicationController
     authorize Series
     @series = Series.find(params[:id])
     if @series.update(series_params)
+      # After updating series tags, update all its movies to have the full set of series tags (plus any unique movie tags)
+      @series.movies.find_each do |movie|
+        movie.tags = (movie.tags + @series.tags).uniq
+        # Also, ensure the series gets any unique tags from its movies
+        new_tags = movie.tags - @series.tags
+        @series.tags << new_tags unless new_tags.empty?
+      end
       expire_series_cache(@series)
       expire_series_index_cache
       redirect_to @series, notice: 'Series was successfully updated.'

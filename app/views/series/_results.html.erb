@@ -3,10 +3,13 @@
     <% @series.each do |series| %>
       <div class="col-md-6 col-lg-4">
         <div class="card border-0 shadow-lg rounded-4 h-100">
-          <% if series.img.present? %>
-            <%= image_tag series.img, class: "card-img-top rounded-top-4", alt: series.title, loading: "lazy" %>
+          <% img_style = 'height: 250px; object-fit: cover; width: 100%;' %>
+          <% if series.img.attached? %>
+            <%= image_tag url_for(series.img), class: "card-img-top rounded-top-4", alt: series.title, loading: "lazy", style: img_style %>
+          <% elsif series.img.is_a?(String) && series.img.present? %>
+            <%= image_tag series.img, class: "card-img-top rounded-top-4", alt: series.title, loading: "lazy", style: img_style %>
           <% else %>
-            <%= image_tag 'series/default.JPG', class: "card-img-top rounded-top-4", alt: 'Default series image', loading: "lazy" %>
+            <%= image_tag 'series/default.JPG', class: "card-img-top rounded-top-4", alt: 'Default series image', loading: "lazy", style: img_style %>
           <% end %>
           <div class="card-body d-flex flex-column">
             <h5 class="card-title fw-bold"><%= series.title %></h5>

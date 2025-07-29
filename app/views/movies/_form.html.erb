@@ -40,6 +40,8 @@
             <%= form.file_field :video_file, class: 'form-control' %>
           </div>
 
+          <%= form.hidden_field :series_id, value: movie.series_id %>
+
           <div class="mb-3" data-controller="movie">
             <%= form.label :tags, class: 'form-label text-white' %>
             <div class="d-flex flex-wrap gap-2" data-movie-target="tagSelect">

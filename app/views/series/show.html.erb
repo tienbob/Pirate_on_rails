@@ -4,7 +4,9 @@
     <div class="col-lg-8">
       <div class="glass-card p-5 mb-4">
         <div class="d-flex flex-column flex-md-row align-items-center mb-4">
-          <% if @series.img.present? %>
+          <% if @series.img.attached? %>
+            <%= image_tag url_for(@series.img), class: "fixed-img rounded-3 shadow-sm me-md-4 mb-3 mb-md-0", alt: @series.title %>
+          <% elsif @series.img.is_a?(String) && @series.img.present? %>
             <%= image_tag @series.img, class: "fixed-img rounded-3 shadow-sm me-md-4 mb-3 mb-md-0", alt: @series.title %>
           <% else %>
             <div class="bg-secondary text-white rounded-3 d-flex align-items-center justify-content-center me-md-4 mb-3 mb-md-0 fixed-img">
@@ -38,8 +40,10 @@
           <% @episodes.each do |movie| %>
             <div class="col-md-6">
               <div class="card border-0 shadow-lg rounded-4 h-100">
-                <% if @series.img.present? %>
-                  <%= image_tag @series.img, class: " card-img-top rounded-top-4", alt: @series.title, loading: "lazy" %>
+                <% if @series.img.attached? %>
+                  <%= image_tag url_for(@series.img), class: "card-img-top rounded-top-4", alt: @series.title, loading: "lazy" %>
+                <% elsif @series.img.is_a?(String) && @series.img.present? %>
+                  <%= image_tag @series.img, class: "card-img-top rounded-top-4", alt: @series.title, loading: "lazy" %>
                 <% else %>
                   <div class="video-placeholder rounded-top-4 ">
                     <span>No image available</span>

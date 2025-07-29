@@ -19,7 +19,6 @@
             <%= form.label :title, class: 'form-label' %>
             <%= form.text_field :title, class: 'form-control', required: true %>
           </div>
-
           <div class="mb-3">
             <%= form.label :description, class: 'form-label' %>
             <%= form.text_area :description, class: 'form-control', rows: 3, required: true %>
@@ -27,7 +26,7 @@
 
           <div class="mb-3">
             <%= form.label :img, class: 'form-label' %>
-            <%= form.text_field :img, class: 'form-control' %>
+            <%= form.file_field :img, class: 'form-control', direct_upload: true %>
           </div>
 
           <div class="mb-3">

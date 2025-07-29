@@ -1,3 +1,4 @@
+
 class Movie < ApplicationRecord
   include Elasticsearch::Model
   include Elasticsearch::Model::Callbacks
@@ -12,6 +13,8 @@ class Movie < ApplicationRecord
   validates :is_pro, inclusion: { in: [true, false] }
   validates :video_file, presence: true
   has_one_attached :video_file
+
+  before_create :inherit_series_tags_and_img
 
   # Elasticsearch mapping for nested tags
   settings index: { number_of_shards: 1 } do
@@ -31,5 +34,16 @@ class Movie < ApplicationRecord
       only: [:title, :description, :release_date, :is_pro],
       include: { tags: { only: :name } }
     )
+  end
+
+  private
+  def inherit_series_tags_and_img
+    if series
+      self.tag_ids = series.tag_ids if self.tag_ids.blank?
+      # If using ActiveStorage for images, attach the series image if present and movie has no image
+      if self.respond_to?(:img) && self.img.blank? && series.img.attached?
+        self.img.attach(series.img.blob)
+      end
+    end
   end
 end
