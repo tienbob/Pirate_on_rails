@@ -6,6 +6,9 @@ export default class extends Controller {
   connect() {
     // Subscribe to Action Cable for live updates (always active)
     if (!this.cableSubscribed) {
+      // Get current user id from meta tag
+      const meta = document.querySelector('meta[name="current-user-id"]');
+      this.currentUserId = meta ? meta.getAttribute('content') : null;
       this.subscribeToChatChannel();
       this.cableSubscribed = true;
     }
@@ -27,10 +30,6 @@ export default class extends Controller {
             if (msg.ai_response) {
               // Try to extract content from ai_response if present
               let aiText = msg.ai_response;
-              const contentMatch = aiText.match(/content="([\s\S]*?)"/);
-              if (contentMatch) {
-                aiText = contentMatch[1].replace(/\\n/g, "\n");
-              }
               this.appendMessage({ agent_message: aiText });
             }
           });
@@ -107,8 +106,9 @@ export default class extends Controller {
       aiText = msg.message;
     }
     if (aiText) {
+      let filtered = this.filterAIResponse(aiText);
       const aiDiv = document.createElement("div");
-      aiDiv.textContent = aiText;
+      aiDiv.textContent = filtered.trim();
       aiDiv.style.margin = "8px 0";
       aiDiv.style.textAlign = "left";
       aiDiv.style.background = "#d4f8e8";
@@ -123,12 +123,43 @@ export default class extends Controller {
       aiDiv.style.float = "left";
       this.messagesTarget.appendChild(aiDiv);
     }
+
+  }
+
+  // General filter for AI responses: removes duplicate lines, collapses repeated blocks, trims whitespace
+  filterAIResponse(text) {
+    // Remove exact duplicate lines (keep first occurrence)
+    let lines = text.split('\n');
+    let seen = new Set();
+    let deduped = lines.filter(line => {
+      let trimmed = line.trim();
+      if (trimmed === '' || seen.has(trimmed)) return false;
+      seen.add(trimmed);
+      return true;
+    });
+    let filtered = deduped.join('\n');
+    // Collapse repeated blocks of 3+ identical lines
+    filtered = filtered.replace(/(.*(?:\n|$)){3,}/g, (block) => {
+      let blockLines = block.trim().split('\n');
+      if (blockLines.length > 2 && new Set(blockLines).size === 1) {
+        return blockLines[0] + '\n';
+      }
+      return block;
+    });
+    // Remove excessive whitespace
+    filtered = filtered.replace(/\n{3,}/g, '\n\n');
+    return filtered;
+  }
+
+  // Ensure scroll after message append
+  scrollMessagesToBottom() {
     this.messagesTarget.scrollTop = this.messagesTarget.scrollHeight;
   }
 
   subscribeToChatChannel() {
+    const identifier = { channel: "ChatChannel", id: this.currentUserId };
     if (window.App && window.App.cable) {
-      this.subscription = window.App.cable.subscriptions.create({ channel: "ChatChannel" }, {
+      this.subscription = window.App.cable.subscriptions.create(identifier, {
         received: (data) => {
           this.appendMessage(data);
         }
@@ -136,7 +167,7 @@ export default class extends Controller {
     } else if (window.cable) {
       // For Rails 7 importmap default
       import("@rails/actioncable").then(ActionCable => {
-        this.subscription = ActionCable.createConsumer().subscriptions.create({ channel: "ChatChannel" }, {
+        this.subscription = ActionCable.createConsumer().subscriptions.create(identifier, {
           received: (data) => {
             this.appendMessage(data);
           }

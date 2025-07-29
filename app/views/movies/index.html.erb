@@ -10,11 +10,7 @@
     <%= render 'search_form' %>
   </turbo-frame>
 
-  <% if current_user&.admin? %>
-    <div class="text-center mb-4">
-      <%= link_to 'New Movie', new_movie_path, class: 'btn btn-gradient' %>
-    </div>
-  <% end %>
+
 
   <!-- Turbo Frame: Only the movie list will be replaced on search or Turbo Stream update -->
   <turbo-frame id="movies">
@@ -23,7 +19,7 @@
         <div class="col-md-6 col-lg-4">
           <div class="card border-0 shadow-lg rounded-4 h-100">
             <% if movie.video_file.attached? %>
-              <%= image_tag movie.video_file.preview(resize_to_limit: [320, 180]), class: "card-img-top rounded-top-4", alt: "#{movie.title} preview", loading: "lazy" %>
+              <%= image_tag movie.video_file.preview(resize_to_limit: [320, 180]), class: "fixed-img card-img-top rounded-top-4", alt: "#{movie.title} preview", loading: "lazy" %>
             <% else %>
               <div class="video-placeholder rounded-top-4">
                 <span>No image available</span>

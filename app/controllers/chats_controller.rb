@@ -9,7 +9,7 @@ class ChatsController < ApplicationController
     ai_response = JSON.parse(response.body)["response"] rescue "Sorry, AI service unavailable."
     chat = Chat.create!(user_message: user_message, ai_response: ai_response, user: current_user)
     # Broadcast to Action Cable
-    ChatChannel.broadcast_to(current_user, {
+    ApplicationCable::ChatChannel.broadcast_to(current_user, {
       user_message: chat.user_message,
       ai_response: chat.ai_response,
       created_at: chat.created_at
@@ -17,18 +17,27 @@ class ChatsController < ApplicationController
     render json: { response: ai_response }
   end
 
-  # 2. Python agent can call this endpoint to fetch all movie data for semantic search
-  def movies_data
-    movies = Movie.includes(:tags).all
-    result = movies.map do |movie|
+  # 2. Python agent can call this endpoint to fetch all series data for semantic search
+  def series_data
+    series = Series.includes(:movies, :tags).all
+    result = series.map do |s|
       {
-        title: movie.title,
-        description: movie.description,
-        is_pro: movie.is_pro,
-        tags: movie.tags.map(&:name)
+        title: s.title,
+        description: s.description,
+        img: s.img,
+        tags: s.tags.map(&:name),
+        episodes: s.movies.map do |movie|
+          {
+            title: movie.title,
+            description: movie.description,
+            is_pro: movie.is_pro,
+            release_date: movie.release_date,
+            tags: movie.tags.map(&:name)
+          }
+        end
       }
     end
-    render json: { movies: result }
+    render json: { series: result }
   end
 
   # 3. Endpoint to return user and AI responses for each user interaction

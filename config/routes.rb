@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  resources :series
   # PWA files
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
@@ -7,10 +8,9 @@ Rails.application.routes.draw do
   devise_for :users, sign_out_via: [:get, :delete]
 
 
-  # Root path: movies#index for authenticated users, login for unauthenticated
 devise_scope :user do
   authenticated :user do
-    root to: "movies#index", as: :authenticated_root
+    root to: "series#index", as: :authenticated_root
   end
 
   unauthenticated do
@@ -18,11 +18,13 @@ devise_scope :user do
   end
 end
 
-  resources :movies do
+  resources :movies, except: [:index] do
     collection do
       get 'search'
     end
   end
+  # Optionally, add a custom admin-only index if needed:
+  # get 'movies', to: 'movies#index', as: :admin_movies, constraints: ->(req) { req.env['warden'].user&.admin? }
   resources :tags
   get 'payments/upgrade', to: 'payments#upgrade', as: :upgrade_payment
   resources :payments
@@ -36,5 +38,6 @@ end
   post "/chats", to: "chats#create"
   get "/chats/movies_data", to: "chats#movies_data"
   get "/chats/history", to: "chats#history"
+  get "/chats/series_data", to: "chats#series_data"
 end
 

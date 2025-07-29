@@ -3,8 +3,8 @@ class MoviesController < ApplicationController
   before_action :authenticate_user!
   before_action :require_admin, only: [:new, :create, :edit, :update, :destroy]
   before_action :set_movie, only: [:show, :edit, :update, :destroy]
-  after_action :verify_authorized, except: [:index, :show, :search]
-  after_action :verify_policy_scoped, only: [:index, :search]
+  after_action :verify_authorized, except: [:show, :search]
+  after_action :verify_policy_scoped, only: [:search]
   # Only allow admins to perform certain actions
   def require_admin
     unless current_user && current_user.admin?
@@ -33,38 +33,34 @@ class MoviesController < ApplicationController
 
   def destroy
     authorize_user
+    parent_series = @movie.series
     @movie.destroy
-    redirect_to movies_path, notice: 'Movie was successfully deleted.'
+    redirect_to series_path(parent_series), notice: 'Episode was successfully deleted.'
   end
 
-  # Other actions remain unchanged
-  def index
-    # Kaminari pagination: params[:page] is used by default
-    page = (params[:page] || 1).to_i
-    per_page = 8
-    movies_scope = policy_scope(Movie).includes(:tags)
-    if page <= 3
-      cached_ids = Rails.cache.fetch(["movies_index_ids", page, current_user&.id], expires_in: 60.minutes) do
-        movies_scope.page(page).per(per_page).pluck(:id)
-      end
-      @movies = movies_scope.where(id: cached_ids).order(:id)
-      @movies = Kaminari.paginate_array(@movies, total_count: movies_scope.count).page(page).per(per_page)
-    else
-      @movies = movies_scope.page(page).per(per_page)
-    end
-  end
+  # Index action removed: series index is now the main gallery. Uncomment if you want to keep it for admin or direct access.
 
   def show
     @movie = policy_scope(Movie).find(params[:id])
     authorize @movie
   end
 
+
   def new
-    @movie = Movie.new
+    if params[:series_id].blank? || !Series.exists?(params[:series_id])
+      redirect_to series_index_path, alert: 'You must select a series before adding an episode.'
+      return
+    end
+    @movie = Movie.new(series_id: params[:series_id])
     authorize @movie
   end
 
+
   def create
+    if params[:movie][:series_id].blank? || !Series.exists?(params[:movie][:series_id])
+      redirect_to series_index_path, alert: 'You must select a series before adding an episode.'
+      return
+    end
     @movie = Movie.new(movie_params)
     authorize @movie
     tag_ids = params[:movie][:tag_ids] || []
@@ -89,7 +85,7 @@ class MoviesController < ApplicationController
   private
 
   def movie_params
-    params.require(:movie).permit(:title, :description, :release_date, :is_pro, :video_file)
+    params.require(:movie).permit(:title, :description, :release_date, :is_pro, :video_file, :series_id)
   end
 
   def set_movie

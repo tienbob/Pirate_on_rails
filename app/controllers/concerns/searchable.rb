@@ -36,6 +36,44 @@ module Searchable
             query: { match: { 'tags.name': tag } }
           }}
         end
+
+  def search_series(params)
+    cache_key = [
+      "search_series",
+      params[:q],
+      params[:tags]&.sort,
+      (respond_to?(:current_user) ? current_user&.id : nil)
+    ].join(":")
+    Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
+      query = params[:q]
+      tags = params[:tags]
+      search_conditions = []
+      if query.present?
+        search_conditions << { match: { title: query } }
+      end
+      if tags.present?
+        tags.each do |tag|
+          search_conditions << { nested: {
+            path: 'tags',
+            query: { match: { 'tags.name': tag } }
+          }}
+        end
+      end
+      if search_conditions.any?
+        series = Series.__elasticsearch__.search({
+          query: {
+            bool: {
+              must: search_conditions
+            }
+          }
+        }).records
+        ar_series = Series.where(id: series.map(&:id))
+        ar_series
+      else
+        Series.all
+      end
+    end
+  end
       end
       if search_conditions.any?
         movies = Movie.__elasticsearch__.search({
