@@ -40,16 +40,17 @@
             <%= form.file_field :video_file, class: 'form-control' %>
           </div>
 
-          <div class="mb-3">
+          <div class="mb-3" data-controller="movie">
             <%= form.label :tags, class: 'form-label text-white' %>
-            <div class="d-flex flex-wrap gap-2">
+            <div class="d-flex flex-wrap gap-2" data-movie-target="tagSelect">
               <% Tag.all.each do |tag| %>
-                <label class="btn btn-outline-info mb-2">
+                <label class="btn btn-outline-info mb-2 tag-option" data-tag="<%= tag.id %>">
                   <%= check_box_tag "movie[tag_ids][]", tag.id, movie.tags.include?(tag), id: "tag_#{tag.id}", class: "btn-check" %>
                   <span><%= tag.name %></span>
                 </label>
               <% end %>
             </div>
+            <input type="hidden" data-movie-target="selectedTags" />
           </div>
 
           <div class="d-grid gap-2">

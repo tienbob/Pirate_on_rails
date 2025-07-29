@@ -12,7 +12,7 @@ export default class extends Controller {
   static targets = ["tagSelect", "selectedTags", "yearFrom", "yearTo"]
 
   connect() {
-    console.log("MovieSearchFormController connected");
+    console.log("Movie controller connected");
 
     // --- Tag selection logic ---
     // This logic lets users select/deselect tags for searching movies.
@@ -21,32 +21,44 @@ export default class extends Controller {
     let selected = [];
     if (this.hasTagSelectTarget && this.hasSelectedTagsTarget) {
       this.tagSelectTarget.querySelectorAll('.tag-option').forEach(tagEl => {
-        tagEl.addEventListener('click', () => {
-          const tag = tagEl.getAttribute('data-tag');
-          if (selected.includes(tag)) {
-            selected = selected.filter(t => t !== tag);
-            tagEl.classList.remove('bg-primary');
-            tagEl.classList.add('bg-secondary');
-          } else {
-            selected.push(tag);
-            tagEl.classList.remove('bg-secondary');
-            tagEl.classList.add('bg-primary');
+        const checkbox = tagEl.querySelector('input[type="checkbox"]');
+        if (checkbox) {
+          // Set initial highlight based on checked state
+          if (checkbox.checked) {
+            tagEl.classList.add('tag-selected');
+            if (!selected.includes(checkbox.value)) selected.push(checkbox.value);
           }
-          this.selectedTagsTarget.value = selected.join(',');
-        });
+          checkbox.addEventListener('change', () => {
+            const tag = checkbox.value;
+            if (checkbox.checked) {
+              tagEl.classList.add('tag-selected');
+              if (!selected.includes(tag)) selected.push(tag);
+              console.log(`[Tag] Selected tag: ${tag}`);
+            } else {
+              tagEl.classList.remove('tag-selected');
+              selected = selected.filter(t => t !== tag);
+              console.log(`[Tag] Deselected tag: ${tag}`);
+            }
+            this.selectedTagsTarget.value = selected.join(',');
+            console.log('[Tag] Tags ready to send:', selected);
+          });
+        }
       });
       // On form submit, add hidden inputs for each selected tag.
       // Turbo will submit the form via AJAX and update the results frame.
-      document.getElementById('movie-search-form').addEventListener('submit', e => {
-        document.querySelectorAll('input[name="tags[]"]').forEach(el => el.remove());
-        selected.forEach(tag => {
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = 'tags[]';
-          input.value = tag;
-          e.target.appendChild(input);
+      const form = document.getElementById('movie-search-form');
+      if (form) {
+        form.addEventListener('submit', e => {
+          document.querySelectorAll('input[name="tags[]"]').forEach(el => el.remove());
+          selected.forEach(tag => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'tags[]';
+            input.value = tag;
+            e.target.appendChild(input);
+          });
         });
-      });
+      }
     }
 
     // --- Year dropdown logic ---

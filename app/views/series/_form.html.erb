@@ -2,22 +2,17 @@
   <div class="row justify-content-center">
     <div class="col-lg-8">
       <div class="card shadow-lg rounded-4 p-4">
-        <h2 class="mb-4 text-center">Movie Form</h2>
-        <%= form_with(model: movie, local: true, html: { class: 'needs-validation' }) do |form| %>
-          <% if movie.errors.any? %>
+        <h2 class="mb-4 text-center">Series Form</h2>
+        <%= form_with(model: series, local: true, html: { class: 'needs-validation' }) do |form| %>
+          <% if series.errors.any? %>
             <div class="alert alert-danger">
-              <h4><%= pluralize(movie.errors.count, "error") %> prohibited this movie from being saved:</h4>
+              <h4><%= pluralize(series.errors.count, "error") %> prohibited this series from being saved:</h4>
               <ul>
-              <% movie.errors.full_messages.each do |message| %>
+              <% series.errors.full_messages.each do |message| %>
                 <li><%= message %></li>
               <% end %>
               </ul>
             </div>
-          <% end %>
-
-
-          <% if movie.series_id.present? %>
-            <%= form.hidden_field :series_id, value: movie.series_id %>
           <% end %>
 
           <div class="mb-3">
@@ -31,18 +26,8 @@
           </div>
 
           <div class="mb-3">
-            <%= form.label :release_date, class: 'form-label' %>
-            <%= form.text_field :release_date, class: 'form-control', type: 'date' %>
-          </div>
-
-          <div class="form-check mb-3">
-            <%= form.check_box :is_pro, class: 'form-check-input' %>
-            <%= form.label :is_pro, class: 'form-check-label' %>
-          </div>
-
-          <div class="mb-3">
-            <%= form.label :video_file, class: 'form-label' %>
-            <%= form.file_field :video_file, class: 'form-control' %>
+            <%= form.label :img, class: 'form-label' %>
+            <%= form.text_field :img, class: 'form-control' %>
           </div>
 
           <div class="mb-3">
@@ -50,7 +35,7 @@
             <div class="d-flex flex-wrap gap-2">
               <% Tag.all.each do |tag| %>
                 <label class="btn btn-outline-info mb-2">
-                  <%= check_box_tag "movie[tag_ids][]", tag.id, movie.tags.include?(tag), id: "tag_#{tag.id}", class: "btn-check" %>
+                  <%= check_box_tag "series[tag_ids][]", tag.id, series.tags.include?(tag), id: "tag_#{tag.id}", class: "btn-check" %>
                   <span><%= tag.name %></span>
                 </label>
               <% end %>

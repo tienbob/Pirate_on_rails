@@ -43,6 +43,11 @@ export default class extends Controller {
       this.popupTarget.style.display = "none";
       this.openTarget.style.display = "flex";
     });
+    // Auto-expand textarea as user types
+    this.inputTarget.addEventListener("input", function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
     this.formTarget.addEventListener("submit", async (e) => {
       e.preventDefault();
       const msg = this.inputTarget.value.trim();
@@ -50,6 +55,7 @@ export default class extends Controller {
         // Show user message immediately
         this.appendMessage({ user_message: msg });
         this.inputTarget.value = "";
+        this.inputTarget.style.height = 'auto';
         this.messagesTarget.scrollTop = this.messagesTarget.scrollHeight;
 
         // Send to backend via AJAX
@@ -78,6 +84,8 @@ export default class extends Controller {
   }
 
   appendMessage(msg) {
+    // Debug: log all incoming messages
+    console.log("[Chat] appendMessage received:", msg);
     // User message
     if (msg.user_message) {
       const userDiv = document.createElement("div");
@@ -96,10 +104,12 @@ export default class extends Controller {
       userDiv.style.float = "right";
       this.messagesTarget.appendChild(userDiv);
     }
-    // AI message (support agent_message, message, and content keys, prefer agent_message > content > message)
+    // AI message (support agent_message, ai_response, message, and content keys, prefer agent_message > ai_response > content > message)
     let aiText = null;
     if (msg.agent_message) {
       aiText = msg.agent_message;
+    } else if (msg.ai_response && !msg.user_message) {
+      aiText = msg.ai_response;
     } else if (msg.content && !msg.user_message) {
       aiText = msg.content;
     } else if (msg.message && !msg.user_message) {

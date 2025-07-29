@@ -9,7 +9,7 @@ class ChatsController < ApplicationController
     ai_response = JSON.parse(response.body)["response"] rescue "Sorry, AI service unavailable."
     chat = Chat.create!(user_message: user_message, ai_response: ai_response, user: current_user)
     # Broadcast to Action Cable
-    ApplicationCable::ChatChannel.broadcast_to(current_user, {
+    ChatChannel.broadcast_to(current_user, {
       user_message: chat.user_message,
       ai_response: chat.ai_response,
       created_at: chat.created_at
