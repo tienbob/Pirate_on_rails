@@ -10,9 +10,9 @@ export default class extends Controller {
   static targets = ["tagSelect", "selectedTags"]
 
   connect() {
-    console.log("SeriesSearchFormController connected");
+    console.log("Series controller connected");
 
-    // --- Tag selection logic ---
+    // --- Tag selection logic for elastic search ---
     // This logic lets users select/deselect tags for searching series.
     // The selected tags are stored in a hidden input for form submission.
     // When used with Turbo Frames, submitting the form will only update the results frame.

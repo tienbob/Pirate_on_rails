@@ -32,13 +32,14 @@
 
           <div class="mb-3">
             <%= form.label :tags, class: 'form-label text-white' %>
-            <div class="d-flex flex-wrap gap-2">
+            <div class="d-flex flex-wrap gap-2" data-controller="series-form" data-series-form-target="tagSelect selectedTags">
               <% Tag.all.each do |tag| %>
-                <label class="btn btn-outline-info mb-2">
+                <label class="btn btn-outline-info mb-2 tag-option">
                   <%= check_box_tag "series[tag_ids][]", tag.id, series.tags.include?(tag), id: "tag_#{tag.id}", class: "btn-check" %>
                   <span><%= tag.name %></span>
                 </label>
               <% end %>
+              <input type="hidden" data-series-form-target="selectedTags" />
             </div>
           </div>
 
