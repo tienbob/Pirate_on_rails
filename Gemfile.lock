@@ -504,6 +504,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  actioncable
   active_model_serializers (~> 0.10)
   bcrypt (~> 3.1.7)
   bootsnap
@@ -517,7 +518,6 @@ DEPENDENCIES
   factory_bot_rails (~> 6.0)
   faker (~> 2.0)
   faraday (~> 1.0)
-  ffi
   fiddle
   image_processing (~> 1.2)
   importmap-rails

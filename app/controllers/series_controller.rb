@@ -1,3 +1,4 @@
+require_dependency "searchable"
 class SeriesController < ApplicationController
   include Searchable
   before_action :authenticate_user!
@@ -18,7 +19,8 @@ class SeriesController < ApplicationController
     per_page = 8
     if params[:search_type] == 'episode' && (params[:q].present? || params[:tags].present?)
       movies = search_movies(params)
-      @movies = movies.page(page).per(per_page)
+      @movies = policy_scope(movies).page(page).per(per_page)
+      @series = [] # Prevent nil error in _results.html.erb
       respond_to do |format|
         format.html { render :index }
         format.turbo_stream { render partial: 'movies/results', locals: { movies: @movies } }

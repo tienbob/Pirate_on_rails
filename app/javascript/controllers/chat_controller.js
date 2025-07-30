@@ -9,6 +9,7 @@ export default class extends Controller {
       // Get current user id from meta tag
       const meta = document.querySelector('meta[name="current-user-id"]');
       this.currentUserId = meta ? meta.getAttribute('content') : null;
+      console.log("Subscribing to ChatChannel...", this.currentUserId);
       this.subscribeToChatChannel();
       this.cableSubscribed = true;
     }
@@ -86,10 +87,17 @@ export default class extends Controller {
   appendMessage(msg) {
     // Debug: log all incoming messages
     console.log("[Chat] appendMessage received:", msg);
-    // User message
-    if (msg.user_message) {
+
+    // Support nested message object (from Action Cable broadcast)
+    let payload = msg;
+    if (msg.message && typeof msg.message === 'object') {
+      payload = { ...msg, ...msg.message };
+    }
+
+    // Only show user message once
+    if (payload.user_message) {
       const userDiv = document.createElement("div");
-      userDiv.textContent = msg.user_message;
+      userDiv.textContent = payload.user_message;
       userDiv.style.margin = "8px 0";
       userDiv.style.textAlign = "right";
       userDiv.style.background = "#e3f2fd";
@@ -104,16 +112,14 @@ export default class extends Controller {
       userDiv.style.float = "right";
       this.messagesTarget.appendChild(userDiv);
     }
-    // AI message (support agent_message, ai_response, message, and content keys, prefer agent_message > ai_response > content > message)
+    // Show AI message if present (agent_message, ai_response, content, message)
     let aiText = null;
-    if (msg.agent_message) {
-      aiText = msg.agent_message;
-    } else if (msg.ai_response && !msg.user_message) {
-      aiText = msg.ai_response;
-    } else if (msg.content && !msg.user_message) {
-      aiText = msg.content;
-    } else if (msg.message && !msg.user_message) {
-      aiText = msg.message;
+    if (payload.agent_message) {
+      aiText = payload.agent_message;
+    } else if (payload.ai_response) {
+      aiText = payload.ai_response;
+    } else if (payload.content) {
+      aiText = payload.content;
     }
     if (aiText) {
       let filtered = this.filterAIResponse(aiText);
@@ -168,21 +174,27 @@ export default class extends Controller {
 
   subscribeToChatChannel() {
     const identifier = { channel: "ChatChannel", id: this.currentUserId };
+    console.log("[Chat] subscribeToChatChannel called. window.App:", window.App);
     if (window.App && window.App.cable) {
+      console.log("[Chat] window.App.cable is present. Subscribing to ChatChannel with identifier:", identifier);
       this.subscription = window.App.cable.subscriptions.create(identifier, {
         received: (data) => {
+          console.log("[Chat] Received data from Action Cable:", data);
           this.appendMessage(data);
         }
       });
     } else if (window.cable) {
-      // For Rails 7 importmap default
+      console.log("[Chat] window.cable is present. Using fallback import for ActionCable.");
       import("@rails/actioncable").then(ActionCable => {
         this.subscription = ActionCable.createConsumer().subscriptions.create(identifier, {
           received: (data) => {
+            console.log("[Chat] Received data from fallback Action Cable:", data);
             this.appendMessage(data);
           }
         });
       });
+    } else {
+      console.error("[Chat] No Action Cable client found! window.App:", window.App, "window.cable:", window.cable);
     }
   }
 }

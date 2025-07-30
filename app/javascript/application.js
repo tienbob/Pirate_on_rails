@@ -16,3 +16,8 @@ application.register("chat", ChatController)
 application.register("series", SeriesController)
 application.register("series-form", SeriesFormController)
 
+// Initialize Action Cable and assign to window.App.cable for global access
+import { createConsumer } from "@rails/actioncable";
+window.App ||= {};
+window.App.cable = createConsumer();
+

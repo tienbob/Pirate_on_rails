@@ -36,6 +36,22 @@ module Searchable
             query: { match: { 'tags.name': tag } }
           }}
         end
+      end
+      if search_conditions.any?
+        movies = Movie.__elasticsearch__.search({
+          query: {
+            bool: {
+              must: search_conditions
+            }
+          }
+        }).records
+        ar_movies = Movie.where(id: movies.map(&:id))
+        ar_movies
+      else
+        Movie.all
+      end
+    end
+  end
 
   def search_series(params)
     cache_key = [
@@ -71,22 +87,6 @@ module Searchable
         ar_series
       else
         Series.all
-      end
-    end
-  end
-      end
-      if search_conditions.any?
-        movies = Movie.__elasticsearch__.search({
-          query: {
-            bool: {
-              must: search_conditions
-            }
-          }
-        }).records
-        ar_movies = Movie.where(id: movies.map(&:id))
-        ar_movies
-      else
-        Movie.all
       end
     end
   end

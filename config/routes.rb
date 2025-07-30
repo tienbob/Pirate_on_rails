@@ -6,19 +6,19 @@ Rails.application.routes.draw do
 
   # Devise routes for User authentication
   devise_for :users, sign_out_via: [:get, :delete]
-
-
-devise_scope :user do
-  authenticated :user do
-    root to: "series#index", as: :authenticated_root
-  end
-
-  unauthenticated do
-    root to: "devise/sessions#new", as: :unauthenticated_root
-  end
   # Mount Action Cable at /cable for WebSocket support
   mount ActionCable.server => '/cable'
-end
+
+
+  devise_scope :user do
+    authenticated :user do
+      root to: "series#index", as: :authenticated_root
+    end
+  
+    unauthenticated do
+      root to: "devise/sessions#new", as: :unauthenticated_root
+    end
+  end
 
   resources :movies, except: [:index] do
     collection do
