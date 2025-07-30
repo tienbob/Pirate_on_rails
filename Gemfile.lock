@@ -307,8 +307,9 @@ GEM
     raabro (1.4.0)
     racc (1.8.1)
     rack (3.1.16)
-    rack-cors (1.1.1)
-      rack (>= 2.0.0)
+    rack-cors (3.0.0)
+      logger
+      rack (>= 3.0.14)
     rack-protection (4.1.1)
       base64 (>= 0.1.0)
       logger (>= 1.6.0)
@@ -532,7 +533,7 @@ DEPENDENCIES
   puma (>= 5.0)
   pundit (~> 2.0)
   pundit-matchers
-  rack-cors (~> 1.1)
+  rack-cors (~> 3.0)
   rails (~> 8.0.2)
   redis (~> 4.0)
   rollbar (~> 3.0)
