@@ -84,7 +84,8 @@ export default class extends Controller {
     });
   }
 
-  appendMessage(msg) {
+  // If skipUser is true, do not render user_message (for Action Cable events)
+  appendMessage(msg, skipUser = false) {
     // Debug: log all incoming messages
     console.log("[Chat] appendMessage received:", msg);
 
@@ -94,8 +95,8 @@ export default class extends Controller {
       payload = { ...msg, ...msg.message };
     }
 
-    // Only show user message once
-    if (payload.user_message) {
+    // Only show user message if not skipping (skipUser is false)
+    if (!skipUser && payload.user_message) {
       const userDiv = document.createElement("div");
       userDiv.textContent = payload.user_message;
       userDiv.style.margin = "8px 0";
@@ -112,8 +113,10 @@ export default class extends Controller {
       userDiv.style.float = "right";
       this.messagesTarget.appendChild(userDiv);
     }
-    // Show AI message if present (agent_message, ai_response, content, message)
+
+    // Robustly extract AI message from both top-level and nested message
     let aiText = null;
+    // Check top-level fields
     if (payload.agent_message) {
       aiText = payload.agent_message;
     } else if (payload.ai_response) {
@@ -121,6 +124,17 @@ export default class extends Controller {
     } else if (payload.content) {
       aiText = payload.content;
     }
+    // If not found, check nested message object
+    if (!aiText && payload.message && typeof payload.message === 'object') {
+      if (payload.message.agent_message) {
+        aiText = payload.message.agent_message;
+      } else if (payload.message.ai_response) {
+        aiText = payload.message.ai_response;
+      } else if (payload.message.content) {
+        aiText = payload.message.content;
+      }
+    }
+    console.log("[Chat] appendMessage extracted aiText:", aiText);
     if (aiText) {
       let filtered = this.filterAIResponse(aiText);
       const aiDiv = document.createElement("div");
@@ -138,8 +152,10 @@ export default class extends Controller {
       aiDiv.style.whiteSpace = "pre-line";
       aiDiv.style.float = "left";
       this.messagesTarget.appendChild(aiDiv);
+    } else if (skipUser) {
+      // If skipUser is true and no AI message found, log a warning
+      console.warn("[Chat] No AI message found in Action Cable payload:", msg);
     }
-
   }
 
   // General filter for AI responses: removes duplicate lines, collapses repeated blocks, trims whitespace
@@ -175,12 +191,16 @@ export default class extends Controller {
   subscribeToChatChannel() {
     const identifier = { channel: "ChatChannel", id: this.currentUserId };
     console.log("[Chat] subscribeToChatChannel called. window.App:", window.App);
+    const handleAIResponse = (data) => {
+      // Pass the original data object, let appendMessage extract the AI field
+      this.appendMessage(data, true);
+    };
     if (window.App && window.App.cable) {
       console.log("[Chat] window.App.cable is present. Subscribing to ChatChannel with identifier:", identifier);
       this.subscription = window.App.cable.subscriptions.create(identifier, {
         received: (data) => {
           console.log("[Chat] Received data from Action Cable:", data);
-          this.appendMessage(data);
+          handleAIResponse(data);
         }
       });
     } else if (window.cable) {
@@ -189,7 +209,7 @@ export default class extends Controller {
         this.subscription = ActionCable.createConsumer().subscriptions.create(identifier, {
           received: (data) => {
             console.log("[Chat] Received data from fallback Action Cable:", data);
-            this.appendMessage(data);
+            handleAIResponse(data);
           }
         });
       });
