@@ -2,6 +2,7 @@ class MoviesController < ApplicationController
   include Searchable
   before_action :authenticate_user!
   before_action :require_admin, only: [:new, :create, :edit, :destroy]
+  before_action :set_movie, only: [:edit, :destroy, :show]
   # Only allow admins to perform certain actions
   def require_admin
     unless current_user && current_user.admin?
