@@ -35,9 +35,6 @@ gem "kamal", require: false
 # Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
 gem "thruster", require: false
 
-# Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-# gem "image_processing", "~> 1.2"
-
 # Use Active Storage for file uploads [https://guides.rubyonrails.org/active_storage_overview.html]
 gem "image_processing", "~> 1.2"
 gem "mini_magick", "~> 4.9"
@@ -130,4 +127,3 @@ end
 
 gem "pg", group: :production
 
-## gem "jsbundling-rails", "~> 1.3" # Removed for importmap-only setup

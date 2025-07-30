@@ -59,6 +59,9 @@ export default class extends Controller {
         this.inputTarget.style.height = 'auto';
         this.messagesTarget.scrollTop = this.messagesTarget.scrollHeight;
 
+        // Show animated AI loading indicator
+        this.showAILoading();
+
         // Send to backend via AJAX
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         try {
@@ -72,6 +75,7 @@ export default class extends Controller {
           });
           // AI response will arrive via Action Cable
         } catch (err) {
+          this.removeAILoading();
           const errDiv = document.createElement("div");
           errDiv.textContent = "Network error.";
           errDiv.style.margin = "8px 0";
@@ -83,7 +87,51 @@ export default class extends Controller {
       }
     });
   }
+  showAILoading() {
+    this.removeAILoading();
+    const loadingDiv = document.createElement("div");
+    loadingDiv.className = "ai-loading-indicator";
+    loadingDiv.innerHTML = `
+      <span class="ai-dots">
+        <span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>
+      </span>
+      <span style="margin-left:8px; color:#888; font-style:italic;">AI is thinking</span>
+      <style>
+        .ai-dots .dot {
+          animation: ai-blink 1.4s infinite both;
+          font-size: 1.5em;
+          color: #888;
+        }
+        .ai-dots .dot:nth-child(2) { animation-delay: 0.2s; }
+        .ai-dots .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes ai-blink {
+          0%, 80%, 100% { opacity: 0; }
+          40% { opacity: 1; }
+        }
+      </style>
+    `;
+    loadingDiv.style.margin = "8px 0";
+    loadingDiv.style.textAlign = "left";
+    loadingDiv.style.background = "#f3f3f3";
+    loadingDiv.style.color = "#888";
+    loadingDiv.style.borderRadius = "8px";
+    loadingDiv.style.padding = "10px 14px";
+    loadingDiv.style.display = "inline-block";
+    loadingDiv.style.maxWidth = "85%";
+    loadingDiv.style.fontSize = "1em";
+    loadingDiv.style.whiteSpace = "pre-line";
+    loadingDiv.style.float = "left";
+    this.messagesTarget.appendChild(loadingDiv);
+    this.messagesTarget.scrollTop = this.messagesTarget.scrollHeight;
+  };
 
+  // Remove the loading indicator
+  removeAILoading() {
+    const loadingDiv = this.messagesTarget.querySelector('.ai-loading-indicator');
+    if (loadingDiv) {
+      loadingDiv.remove();
+    }
+  }
   // If skipUser is true, do not render user_message (for Action Cable events)
   appendMessage(msg, skipUser = false) {
     // Debug: log all incoming messages
@@ -136,6 +184,7 @@ export default class extends Controller {
     }
     console.log("[Chat] appendMessage extracted aiText:", aiText);
     if (aiText) {
+      this.removeAILoading();
       let filtered = this.filterAIResponse(aiText);
       const aiDiv = document.createElement("div");
       aiDiv.textContent = filtered.trim();
@@ -154,6 +203,7 @@ export default class extends Controller {
       this.messagesTarget.appendChild(aiDiv);
     } else if (skipUser) {
       // If skipUser is true and no AI message found, log a warning
+      this.removeAILoading();
       console.warn("[Chat] No AI message found in Action Cable payload:", msg);
     }
   }
