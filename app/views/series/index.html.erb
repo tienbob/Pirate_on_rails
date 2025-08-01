@@ -6,25 +6,23 @@
 <% [-2, -1, 0, 1, 2].each do |offset| %>
   <% cache ["series_index", current_page + offset] do %>
     <% if offset == 0 %>
-      <div class="container py-5">
-        <h1 class="text-center text-white mb-5">Series Gallery</h1>
+      <turbo-frame id="series">
+        <div class="container py-5">
+          <h1 class="text-center text-white mb-5">Series Gallery</h1>
 
-        <div class="mb-4">
-          <%= render 'search_form' %>
-        </div>
-
-        <% if current_user&.admin? %>
-          <div class="text-center mb-4">
-            <%= link_to 'New Series', new_series_path, class: 'btn btn-gradient' %>
+          <div class="mb-4">
+            <%= render 'search_form' %>
           </div>
-        <% end %>
 
-        <% if params[:search_type] == 'episode' && @movies.present? %>
-          <%= render partial: 'movies/results', locals: { movies: @movies } %>
-        <% else %>
+          <% if current_user&.admin? %>
+            <div class="text-center mb-4">
+              <%= link_to 'New Series', new_series_path, class: 'btn btn-gradient' %>
+            </div>
+          <% end %>
+
           <%= render 'results' %>
-        <% end %>
-      </div>
+        </div>
+      </turbo-frame>
     <% end %>
   <% end %>
 <% end %>

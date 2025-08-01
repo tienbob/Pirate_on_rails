@@ -44,8 +44,7 @@ export default class extends Controller {
           input.value = tag;
           e.target.appendChild(input);
         });
-        // Ensure the selected search_type is submitted (handled by browser, but can be enforced here if needed)
-        // No extra JS needed unless you want to dynamically change form behavior based on search_type
+        // No extra JS needed; only series search is allowed
       });
     }
   }
