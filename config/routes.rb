@@ -29,17 +29,17 @@ Rails.application.routes.draw do
   # get 'movies', to: 'movies#index', as: :admin_movies, constraints: ->(req) { req.env['warden'].user&.admin? }
   resources :tags
   get 'payments/upgrade', to: 'payments#upgrade', as: :upgrade_payment
-  resources :payments
-  resources :users, only: [:index, :new, :create, :show, :update, :destroy]
   get 'payments/success', to: 'payments#success', as: :success_payments
+  resources :users, only: [:index, :new, :create, :show, :edit, :update, :destroy]
   post 'payments/create_checkout_session', to: 'payments#create_checkout_session', as: :create_checkout_session_payments
   post 'payments/create_portal_session', to: 'payments#create_portal_session', as: :create_portal_session_payments
-  post 'payments/webhook', to: 'payments#webhook', as: :webhook_payments
+  post 'payments/webhook', to: 'payments#webhook', as: :webhook_payments  
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
   post "/chats", to: "chats#create"
   get "/chats/movies_data", to: "chats#movies_data"
   get "/chats/history", to: "chats#history"
   get "/chats/series_data", to: "chats#series_data"
+
 end
 

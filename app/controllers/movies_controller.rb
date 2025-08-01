@@ -25,8 +25,13 @@ class MoviesController < ApplicationController
   # Index action removed: series index is now the main gallery. Uncomment if you want to keep it for admin or direct access.
 
   def show
-    @movie = policy_scope(Movie).find(params[:id])
-    authorize @movie
+    begin
+      @movie = policy_scope(Movie).find(params[:id])
+      authorize @movie
+    rescue ActiveRecord::RecordNotFound
+      flash[:alert] = "This movie is for Pro users only. Please upgrade your account to watch."
+      redirect_to series_index_path
+    end
   end
 
 

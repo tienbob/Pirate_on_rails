@@ -23,11 +23,6 @@
             <%= link_to 'Upgrade to Pro', upgrade_payment_path, class: 'nav-link text-warning' %>
           </li>
         <% end %>
-        <% if user_signed_in? && current_user.admin? %>
-          <li class="nav-item">
-            <%= link_to 'Payments', payments_path, class: 'nav-link text-info' %>
-          </li>
-        <% end %>
         <% if user_signed_in? %>
           <li class="nav-item">
             <%= link_to 'Logout', destroy_user_session_path, method: :delete, class: 'nav-link' %>

@@ -4,24 +4,16 @@
       <div class="card shadow-lg rounded-4 p-4">
         <h2 class="mb-4 text-center">Upgrade to Pro</h2>
         <p class="text-center mb-4">Unlock all features by upgrading your account to Pro!</p>
-        <form id="payment-form"
-              data-controller="payment"
-              data-payment-public-key-value="<%= ENV['STRIPE_PUBLIC_API_KEY']  %>"
-              data-payment-target="form"
-              method="post"
-              action="<%= create_checkout_session_payments_path %>">
+        <form method="post" action="<%= create_checkout_session_payments_path %>" data-turbo="false">
           <div class="mb-3">
             <label class="form-label">Amount</label>
             <input type="number" class="form-control" value="9.99" readonly>
           </div>
-          <div class="mb-3">
-            <label for="card-element" class="form-label">Card Details</label>
-            <div id="card-element" data-payment-target="cardElement" class="form-control"></div>
-            <div id="card-errors" data-payment-target="cardErrors" class="text-danger mt-2"></div>
-          </div>
           <input type="hidden" name="user_id" value="<%= current_user.id %>">
+          <input type="hidden" name="price" value="<%= ENV['STRIPE_PRICE_ID'] %>">
+          <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
           <div class="d-grid gap-2">
-            <button id="submit-button" data-payment-target="submitButton" class="btn btn-gradient btn-lg">Pay & Upgrade</button>
+            <button class="btn btn-gradient btn-lg">Pay & Upgrade</button>
           </div>
         </form>
         <div class="mt-3 text-center">
@@ -32,4 +24,4 @@
   </div>
 </div>
 
-<script src="https://js.stripe.com/v3/"></script>
+

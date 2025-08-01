@@ -3,19 +3,18 @@ class PaymentsController < ApplicationController
 
   # Stripe Checkout Session for subscription
   def create_checkout_session
-    prices = Stripe::Price.list(
-      lookup_keys: [params[:lookup_key]],
-      expand: ['data.product']
-    )
+    if params[:price].blank?
+      render json: { error: { message: "Missing or empty price parameter (Stripe Price ID)." } }, status: :bad_request and return
+    end
     begin
       session = Stripe::Checkout::Session.create({
         mode: 'subscription',
         line_items: [{
           quantity: 1,
-          price: prices.data[0].id
+          price: params[:price]
         }],
-        success_url: payments_success_url + '?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url: payments_upgrade_url,
+        success_url: success_payments_url + '?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url: upgrade_payment_url,
       })
       redirect_to session.url, allow_other_host: true
     rescue StandardError => e
@@ -27,7 +26,7 @@ class PaymentsController < ApplicationController
   def create_portal_session
     checkout_session_id = params[:session_id]
     checkout_session = Stripe::Checkout::Session.retrieve(checkout_session_id)
-    return_url = payments_success_url
+    return_url = success_payments_url
     session = Stripe::BillingPortal::Session.create({
       customer: checkout_session.customer,
       return_url: return_url
@@ -64,6 +63,18 @@ class PaymentsController < ApplicationController
       Rails.logger.info "Subscription updated: #{event.id}"
     when 'customer.subscription.created'
       Rails.logger.info "Subscription created: #{event.id}"
+      # Upgrade user to pro when subscription is created
+      begin
+        customer_id = data_object["customer"]
+        customer = Stripe::Customer.retrieve(customer_id)
+        user = User.find_by(email: customer.email)
+        if user && user.role != "pro"
+          user.update(role: "pro")
+          Rails.logger.info "User \\#{user.email} upgraded to pro."
+        end
+      rescue => e
+        Rails.logger.error "Failed to upgrade user to pro: \\#{e.message}"
+      end
     when 'customer.subscription.trial_will_end'
       Rails.logger.info "Subscription trial will end: #{event.id}"
     when 'entitlements.active_entitlement_summary.updated'
@@ -78,58 +89,28 @@ class PaymentsController < ApplicationController
     end
     @payment = Payment.new
   end
-  before_action :require_admin, only: [:index, :new, :create]
-  def index
-    @payments = Payment.all
-  end
 
-  def show
-    @payment = Payment.find(params[:id])
-  end
-
-  def new
-    @payment = Payment.new
-    respond_to do |format|
-      format.html
-      format.json { render json: @payment }
-    end
-  end
-
-  def create
-    @payment = Payment.new(payment_params)
-    if @payment.save
-      PaymentMailerJob.perform_later(@payment.user_id, @payment.id)
-      redirect_to @payment, notice: 'Payment was successfully created.'
-    else
-      render :new
-    end
-  end
 
   def success
+    if params[:session_id].present?
+      begin
+        session = Stripe::Checkout::Session.retrieve(params[:session_id])
+        customer = Stripe::Customer.retrieve(session.customer)
+        user = User.find_by(email: customer.email)
+        if user && user.role != "pro"
+          user.update(role: "pro")
+          flash[:notice] = "Your account has been upgraded to Pro!"
+        end
+      rescue => e
+        Rails.logger.error "Stripe upgrade error: \\#{e.message}"
+      end
+    end
   end
 
   def cancel
     redirect_to movies_path, alert: 'Payment was canceled.'
   end
-  def edit
-    @payment = Payment.find(params[:id])
-  end 
-  def update
-    @payment = Payment.find(params[:id])
-    if @payment.update(payment_params)
-      redirect_to @payment, notice: 'Payment was successfully updated.'
-    else
-      render :edit
-    end
-  end
-  def destroy
-    @payment = Payment.find(params[:id])
-    if @payment.destroy
-      redirect_to payments_path, notice: 'Payment was successfully deleted.'
-    else
-      redirect_to payments_path, alert: 'Failed to delete payment.'
-    end
-  end
+
   private
 
   def require_admin

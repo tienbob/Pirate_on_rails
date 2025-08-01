@@ -20,7 +20,7 @@
   </div>
   <div>
     <%= form.label :role %>
-    <%= form.text_field :role %>
+    <%= form.select :role, options_for_select([['Free', 'free'], ['Pro', 'pro'], ['Admin', 'admin']], @user.role), {}, class: 'form-select' %>
   </div>
   <div>
     <%= form.submit %>

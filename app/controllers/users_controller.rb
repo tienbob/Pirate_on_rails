@@ -1,6 +1,9 @@
 class UsersController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin, only: [:index]
+  before_action :require_admin, only: [:index, :edit, :update, :destroy]
+  def edit
+    @user = User.find(params[:id])
+  end
 
   def index
     # Kaminari pagination: params[:page] is used by default

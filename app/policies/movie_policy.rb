@@ -27,8 +27,8 @@ class MoviePolicy < ApplicationPolicy
       if user.admin? || user.pro?
         scope.all
       elsif user.free?
-        # Free users: non-pro movies OR pro movies older than 3 months
-        scope.where("is_pro = ? OR (is_pro = ? AND release_date <= ?)", false, true, 3.months.ago)
+        # Free users: non-pro movies
+        scope.where("is_pro = ?", false)
       else
         scope.none
       end

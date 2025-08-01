@@ -1,5 +1,6 @@
 class ChatsController < ApplicationController
   include Searchable
+  before_action :authenticate_user!
   protect_from_forgery with: :null_session
 
   # 1. User chat message comes in
