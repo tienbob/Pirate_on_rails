@@ -267,4 +267,16 @@ export default class extends Controller {
       console.error("[Chat] No Action Cable client found! window.App:", window.App, "window.cable:", window.cable);
     }
   }
+  disconnect() {
+    // Unsubscribe from Action Cable when controller is disconnected
+    if (this.subscription) {
+      if (this.subscription.unsubscribe) {
+        this.subscription.unsubscribe();
+        console.log("[Chat] Unsubscribed from ChatChannel");
+      }
+      this.subscription = null;
+    }
+    this.cableSubscribed = false;
+    console.log("[Chat] Stimulus controller disconnected");
+  }
 }
