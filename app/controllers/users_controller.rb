@@ -9,7 +9,6 @@ class UsersController < ApplicationController
   end
 
   def index
-    # Kaminari pagination: params[:page] is used by default
     @users = User.page(params[:page]).per(5)
   end
 

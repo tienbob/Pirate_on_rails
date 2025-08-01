@@ -115,10 +115,13 @@ class PaymentsController < ApplicationController
         user = User.find_by(email: customer.email)
         if user && user.role != "pro"
           user.update(role: "pro")
+          # Map Stripe status to allowed Payment statuses
+          stripe_status = data_object["status"]
           Payment.create!(
             amount: (data_object["amount_total"] || 0) / 100.0,
-            status: data_object["status"] || "completed",
-            user_id: user.id
+            status: stripe_status,
+            user_id: user.id,
+            stripe_charge_id: data_object["latest_invoice"] || data_object["id"]
           )
           Rails.logger.info "User \\#{user.email} upgraded to pro and payment recorded."
         end
@@ -140,7 +143,6 @@ class PaymentsController < ApplicationController
     @payment = Payment.new
   end
 
-
   def success
     if params[:session_id].present?
       begin
@@ -149,10 +151,13 @@ class PaymentsController < ApplicationController
         user = User.find_by(email: customer.email)
         if user && user.role != "pro"
           user.update(role: "pro")
+          # Map Stripe status to allowed Payment statuses
+          stripe_status = session.status
           Payment.create!(
             amount: (session.amount_total || 0) / 100.0,
-            status: session.status || "completed",
-            user_id: user.id
+            status: stripe_status,
+            user_id: user.id,
+            stripe_charge_id: session.payment_intent || session.id
           )
           flash[:notice] = "Your account has been upgraded to Pro!"
         end
@@ -163,14 +168,14 @@ class PaymentsController < ApplicationController
   end
 
   def cancel
-    redirect_to movies_path, alert: 'Payment was canceled.'
+    redirect_to series_path, alert: 'Payment was canceled.'
   end
 
   private
 
   def require_admin
     unless current_user && current_user.admin?
-      redirect_to movies_path, alert: 'You are not authorized to view payments.'
+      redirect_to series_path, alert: 'You are not authorized to view payments.'
     end
   end
 

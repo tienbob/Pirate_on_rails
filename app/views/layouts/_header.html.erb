@@ -19,14 +19,14 @@
           <li class="nav-item">
             <%= link_to 'Payments', payments_path, class: 'nav-link' %>
           </li>
+          <li class="nav-item">
+            <%= link_to 'Tags', tags_path, class: 'nav-link' %>
+          </li>
         <% elsif user_signed_in? %>
           <li class="nav-item">
             <%= link_to 'Profile', user_path(current_user), class: 'nav-link' %>
           </li>
         <% end %>
-        <li class="nav-item">
-          <%= link_to 'Tags', tags_path, class: 'nav-link' %>
-        </li>
         <% if user_signed_in? && !current_user.admin? && !current_user.pro? %>
           <li class="nav-item">
             <%= link_to 'Upgrade to Pro', upgrade_payment_path, class: 'nav-link text-warning' %>

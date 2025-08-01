@@ -5,7 +5,7 @@ class Series < ApplicationRecord
   include Elasticsearch::Model::Callbacks
 
   has_many :movies, dependent: :destroy
-  has_and_belongs_to_many :tags
+  has_and_belongs_to_many :tags, dependent: :destroy
   # Optionally keep the through association if you want to show all tags from episodes as well:
   # has_many :episode_tags, through: :movies, source: :tags
 

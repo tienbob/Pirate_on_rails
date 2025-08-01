@@ -4,7 +4,11 @@ class TagsController < ApplicationController
   # Only allow admins to perform certain actions
   def require_admin
     unless current_user && current_user.admin?
-      redirect_to root_path, alert: 'Access denied. Only admins can manage tags.'
+      if user_signed_in?
+        redirect_to authenticated_root_path, alert: 'Access denied. Only admins can manage tags.'
+      else
+        redirect_to unauthenticated_root_path, alert: 'Access denied. Only admins can manage tags.'
+      end
     end
   end
 
@@ -33,6 +37,7 @@ class TagsController < ApplicationController
   def edit
     @tag = Tag.find(params[:id])
   end
+
   def update
     @tag = Tag.find(params[:id])
     if @tag.update(tag_params)
