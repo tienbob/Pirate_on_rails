@@ -1,6 +1,12 @@
 class PaymentsController < ApplicationController
   protect_from_forgery
 
+  # Admin: List all payments
+  def index
+    require_admin
+    @payments = Payment.includes(:user).order(created_at: :desc).page(params[:page]).per(20)
+  end
+
   # Stripe Checkout Session for subscription
   def create_checkout_session
     if params[:price].blank?
@@ -59,8 +65,47 @@ class PaymentsController < ApplicationController
     case event_type
     when 'customer.subscription.deleted'
       Rails.logger.info "Subscription canceled: #{event.id}"
+      begin
+        customer_id = data_object["customer"]
+        customer = Stripe::Customer.retrieve(customer_id)
+        user = User.find_by(email: customer.email)
+        if user && user.role == "pro"
+          user.update(role: "free")
+          Rails.logger.info "User \\#{user.email} downgraded to free due to subscription cancellation."
+        end
+      rescue => e
+        Rails.logger.error "Failed to downgrade user: \\#{e.message}"
+      end
     when 'customer.subscription.updated'
       Rails.logger.info "Subscription updated: #{event.id}"
+      begin
+        customer_id = data_object["customer"]
+        customer = Stripe::Customer.retrieve(customer_id)
+        user = User.find_by(email: customer.email)
+        # If subscription is unpaid, past_due, or canceled, downgrade user
+        if user && user.role == "pro"
+          status = data_object["status"]
+          if %w[unpaid past_due canceled incomplete expired].include?(status)
+            user.update(role: "free")
+            Rails.logger.info "User \\#{user.email} downgraded to free due to subscription status: \\#{status}."
+          end
+        end
+      rescue => e
+        Rails.logger.error "Failed to downgrade user: \\#{e.message}"
+      end
+    when 'invoice.payment_failed'
+      Rails.logger.info "Payment failed: #{event.id}"
+      begin
+        customer_id = data_object["customer"]
+        customer = Stripe::Customer.retrieve(customer_id)
+        user = User.find_by(email: customer.email)
+        if user && user.role == "pro"
+          # Optionally notify user here (email, etc.)
+          Rails.logger.info "User \\#{user.email} payment failed."
+        end
+      rescue => e
+        Rails.logger.error "Failed to process payment failure: \\#{e.message}"
+      end
     when 'customer.subscription.created'
       Rails.logger.info "Subscription created: #{event.id}"
       # Upgrade user to pro when subscription is created
@@ -70,7 +115,12 @@ class PaymentsController < ApplicationController
         user = User.find_by(email: customer.email)
         if user && user.role != "pro"
           user.update(role: "pro")
-          Rails.logger.info "User \\#{user.email} upgraded to pro."
+          Payment.create!(
+            amount: (data_object["amount_total"] || 0) / 100.0,
+            status: data_object["status"] || "completed",
+            user_id: user.id
+          )
+          Rails.logger.info "User \\#{user.email} upgraded to pro and payment recorded."
         end
       rescue => e
         Rails.logger.error "Failed to upgrade user to pro: \\#{e.message}"
@@ -99,6 +149,11 @@ class PaymentsController < ApplicationController
         user = User.find_by(email: customer.email)
         if user && user.role != "pro"
           user.update(role: "pro")
+          Payment.create!(
+            amount: (session.amount_total || 0) / 100.0,
+            status: session.status || "completed",
+            user_id: user.id
+          )
           flash[:notice] = "Your account has been upgraded to Pro!"
         end
       rescue => e

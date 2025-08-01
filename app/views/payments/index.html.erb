@@ -1,3 +1,58 @@
+<% if current_user&.admin? %>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card border-0 shadow-lg rounded-4 bg-dark text-light">
+        <div class="card-body p-5">
+          <h2 class="fw-bold mb-4 text-center" style="background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Payment Records</h2>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-light">
+              <thead style="background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%); color: #fff;">
+                <tr>
+                  <th>ID</th>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @payments.each do |payment| %>
+                  <tr>
+                    <td><%= payment.id %></td>
+                    <td><%= payment.user&.name || 'N/A' %></td>
+                    <td><%= payment.user&.email || 'N/A' %></td>
+                    <td><span class="badge bg-success"><%= number_to_currency(payment.amount) %></span></td>
+                    <td>
+                      <% status_class = case payment.status
+                        when 'completed' then 'bg-gradient text-white'
+                        when 'pending' then 'bg-warning text-dark'
+                        when 'failed' then 'bg-danger text-white'
+                        else 'bg-secondary text-white'
+                      end %>
+                      <span class="badge <%= status_class %>"><%= payment.status.capitalize %></span>
+                    </td>
+                    <td><%= payment.created_at.strftime('%Y-%m-%d %H:%M') %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4">
+            <%= paginate @payments %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<% else %>
+  <div class="container py-5 text-center">
+    <h2>Access Denied</h2>
+    <p>You are not authorized to view this page.</p>
+  </div>
+<% end %>
 <div class="container py-5">
   <div class="row justify-content-center">
     <div class="col-lg-10 text-center">

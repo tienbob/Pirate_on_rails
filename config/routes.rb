@@ -31,6 +31,7 @@ Rails.application.routes.draw do
   get 'payments/upgrade', to: 'payments#upgrade', as: :upgrade_payment
   get 'payments/success', to: 'payments#success', as: :success_payments
   resources :users, only: [:index, :new, :create, :show, :edit, :update, :destroy]
+  resources :payments, only: [:index]
   post 'payments/create_checkout_session', to: 'payments#create_checkout_session', as: :create_checkout_session_payments
   post 'payments/create_portal_session', to: 'payments#create_portal_session', as: :create_portal_session_payments
   post 'payments/webhook', to: 'payments#webhook', as: :webhook_payments  
