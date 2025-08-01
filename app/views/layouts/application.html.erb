@@ -37,6 +37,20 @@
         <div class="row h-100">
           <div class="col-2 side-strip"></div>
           <div class="col-8 main-content">
+            <% flash.each do |type, message| %>
+              <% next if message.blank? %>
+              <% bs_class = case type.to_sym
+                when :notice then 'alert-success'
+                when :alert then 'alert-danger'
+                when :error then 'alert-danger'
+                when :success then 'alert-success'
+                else 'alert-info'
+              end %>
+              <div class="alert <%= bs_class %> alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; min-width: 300px; max-width: 90vw;">
+                <%= message %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            <% end %>
             <%= yield %>
           </div>
           <div class="col-2 side-strip"></div>

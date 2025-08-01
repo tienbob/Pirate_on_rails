@@ -1,8 +1,11 @@
 class UsersController < ApplicationController
   before_action :authenticate_user!
-  before_action :require_admin, only: [:index, :edit, :update, :destroy]
+  before_action :require_admin, only: [:index, :destroy]
   def edit
     @user = User.find(params[:id])
+    unless current_user.admin? || current_user == @user
+      redirect_to user_path(current_user), alert: "Access denied."
+    end
   end
 
   def index
@@ -30,12 +33,20 @@ class UsersController < ApplicationController
   
   def update
     @user = User.find(params[:id])
-    if @user.update(user_params)
+    if current_user.admin?
+      permitted = user_params
+    elsif current_user == @user
+      permitted = params.require(:user).permit(:email, :password, :password_confirmation)
+    else
+      redirect_to user_path(current_user), alert: "Access denied."
+      return
+    end
+    if @user.update(permitted)
       redirect_to @user, notice: 'User was successfully updated.'
     else
       render :edit
     end
-  end 
+  end
   
   def destroy
     @user = User.find(params[:id])
@@ -50,7 +61,7 @@ class UsersController < ApplicationController
   private
 
   def user_params
-    params.require(:user).permit(:name, :email, :password, :role)
+    params.require(:user).permit(:name, :email, :password, :password_confirmation, :role)
   end
 
   def require_admin

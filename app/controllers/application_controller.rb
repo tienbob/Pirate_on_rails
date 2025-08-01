@@ -1,20 +1,22 @@
 class ApplicationController < ActionController::Base
-  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
   before_action :configure_permitted_parameters, if: :devise_controller?
   include Pundit::Authorization
-
-  # Prevent CSRF attacks by raising an exception.
-  # For APIs, you may want to use :null_session instead.
   protect_from_forgery with: :exception
 
-  # Add a method to handle unauthorized access
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+  rescue_from StandardError, with: :handle_standard_error unless Rails.env.development? || Rails.env.test?
 
   private
 
   def user_not_authorized
     flash[:alert] = "You are not authorized to perform this action."
+    redirect_back(fallback_location: root_path)
+  end
+
+  def handle_standard_error(exception)
+    logger.error(exception)
+    flash[:alert] = "Something went wrong. Please try again."
     redirect_back(fallback_location: root_path)
   end
 
