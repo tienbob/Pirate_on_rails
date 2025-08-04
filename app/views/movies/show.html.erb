@@ -1,4 +1,5 @@
 <% content_for :head do %>
+  <%= stylesheet_link_tag 'cinema_movie_show', media: 'all' %>
   <% content_for :preload_images do %>
     <% if @movie.video_file.attached? %>
       <%= preload_link_tag url_for(@movie.video_file), as: :video %>

@@ -48,8 +48,13 @@ class MoviesController < ApplicationController
       movie
     end
     
-    # Track view analytics (async)
-    TrackViewJob.perform_later(current_user.id, @movie.id) if current_user
+    # Track view analytics (async) - with Redis error handling
+    begin
+      TrackViewJob.perform_later(current_user.id, @movie.id) if current_user
+    rescue Redis::CannotConnectError, Redis::TimeoutError => e
+      Rails.logger.warn "Redis connection failed for TrackViewJob: #{e.message}"
+      # Continue without tracking - don't break the user experience
+    end
     
   rescue ActiveRecord::RecordNotFound
     flash[:alert] = "Movie not found or you don't have permission to view it."
@@ -130,7 +135,7 @@ class MoviesController < ApplicationController
   end
 
   def set_movie
-    @movie = Movie.find(params[:id])
+    @movie = Movie.includes(:series).find(params[:id])
   end
   
   def check_rate_limit

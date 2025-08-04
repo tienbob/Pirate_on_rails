@@ -102,8 +102,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" media="print" onload="this.media='all'">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" media="print" onload="this.media='all'">
 
-    <!-- Main CSS bundle - single optimized file -->
-    <%= stylesheet_link_tag 'cinema_bundle', "data-turbo-track": "reload", media: "all" %>
+    <!-- Core cinema theme styles -->
+    <%= stylesheet_link_tag 'cinema_theme', 'cinema_header', 'cinema_footer', "data-turbo-track": "reload", media: "all" %>
 
     <%= yield :head %>
     <%= javascript_importmap_tags %>
@@ -164,6 +164,7 @@
           </form>
         </div>
         <button type="button" data-chat-target="open" class="cinema-chat-button" style="position:fixed;bottom:24px;right:24px;z-index:9998;">
+          <i class="fas fa-comments"></i>
         </button>
       </div>
     <% end %>
