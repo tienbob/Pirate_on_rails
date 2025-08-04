@@ -30,7 +30,7 @@ class SeriesController < ApplicationController
       @series = @series.order(updated_at: :desc)
       @series = Kaminari.paginate_array(@series, total_count: @series.size).page(page).per(per_page)
     else
-      series_scope = policy_scope(Series.includes(:movies, :tags))
+      series_scope = policy_scope(Series.includes(:tags, movies: :tags))
       if page <= 3
         cached_ids = Rails.cache.fetch(["series_index_ids", page], expires_in: 60.minutes) do
           series_scope.order(updated_at: :desc).page(page).per(per_page).pluck(:id)
@@ -44,7 +44,7 @@ class SeriesController < ApplicationController
   end
 
   def show
-    @series = Series.includes(:movies, :tags).find(params[:id])
+    @series = Series.includes(:tags, movies: :tags).find(params[:id])
     @episodes = @series.movies.order(:release_date).page(params[:page]).per(8)
   end
 

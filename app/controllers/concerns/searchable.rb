@@ -55,10 +55,10 @@ module Searchable
             }
           }
         }).records
-        ar_movies = Movie.where(id: movies.map(&:id))
+        ar_movies = Movie.includes(:tags, :series).where(id: movies.map(&:id))
         ar_movies
       else
-        Movie.all
+        Movie.includes(:tags, :series).all
       end
     end
   end
@@ -103,10 +103,10 @@ module Searchable
               }
             }
           }).records
-          ar_series = Series.where(id: series.map(&:id))
+          ar_series = Series.includes(:tags, movies: :tags).where(id: series.map(&:id))
           ar_series
         else
-          Series.all
+          Series.includes(:tags, movies: :tags).all
         end
       end
     rescue => e

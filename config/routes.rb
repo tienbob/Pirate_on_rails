@@ -9,7 +9,6 @@ Rails.application.routes.draw do
   # Mount Action Cable at /cable for WebSocket support
   mount ActionCable.server => '/cable'
 
-
   devise_scope :user do
     authenticated :user do
       root to: "series#index", as: :authenticated_root
@@ -25,6 +24,18 @@ Rails.application.routes.draw do
       get 'search'
     end
   end
+  
+  # API routes for analytics and tracking
+  namespace :api do
+    post 'track_view', to: 'analytics#track_view'
+    resources :analytics, only: [] do
+      collection do
+        get 'dashboard'
+        get 'movie_stats'
+      end
+    end
+  end
+  
   # Optionally, add a custom admin-only index if needed:
   # get 'movies', to: 'movies#index', as: :admin_movies, constraints: ->(req) { req.env['warden'].user&.admin? }
   resources :tags

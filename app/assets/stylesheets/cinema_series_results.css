@@ -23,8 +23,11 @@
 
 .series-card-image {
   position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
-  height: 280px;
+  background: #222;
+  border-radius: 12px 12px 0 0;
 }
 
 .series-card img {

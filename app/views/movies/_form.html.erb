@@ -1,6 +1,13 @@
 <% content_for :head do %>
   <%= stylesheet_link_tag 'cinema_movie_form', media: 'all' %>
 <% end %>
+
+<div class="movie-form-container">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="form-card">
+          <%= form_with(model: movie, local: true, html: { multipart: true, class: 'movie-form' }) do |form| %>
             <% if movie.errors.any? %>
               <div class="error-alert">
                 <h4>
@@ -91,10 +98,7 @@
 
             <div class="form-group">
               <%= form.submit movie.persisted? ? 'Update Movie' : 'Create Movie', 
-                  class: 'submit-button' do %>
-                <i class="fas fa-save me-2"></i>
-                <%= movie.persisted? ? 'Update Movie' : 'Create Movie' %>
-              <% end %>
+                  class: 'submit-button' %>
             </div>
           <% end %>
         </div>

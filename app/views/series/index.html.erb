@@ -1,36 +1,28 @@
-<% content_for :head do %>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <%= stylesheet_link_tag 'cinema_series_gallery', media: 'all' %>
-<% end %>
+<script>
+  document.body.classList.add('bg-movie-index');
+</script>
 
-<div class="series-gallery-section">
-  <div class="container">
-    <div class="gallery-header">
-      <h1 class="gallery-title">Series Gallery</h1>
-      <p class="gallery-subtitle">Discover amazing series and binge-watch your favorites</p>
-    </div>
+<% current_page = @series.respond_to?(:current_page) ? @series.current_page : 1 %>
+<% [-2, -1, 0, 1, 2].each do |offset| %>
+  <% cache ["series_index", current_page + offset] do %>
+    <% if offset == 0 %>
+      <turbo-frame id="series">
+        <div class="container py-5">
+          <h1 class="text-center text-white mb-5">Series Gallery</h1>
 
-    <% current_page = @series.respond_to?(:current_page) ? @series.current_page : 1 %>
-    <% [-2, -1, 0, 1, 2].each do |offset| %>
-      <% cache ["series_index", current_page + offset] do %>
-        <% if offset == 0 %>
-          <turbo-frame id="series">
-            <div class="mb-4">
-              <%= render 'search_form' %>
+          <div class="mb-4">
+            <%= render 'search_form' %>
+          </div>
+
+          <% if current_user&.admin? %>
+            <div class="text-center mb-4">
+              <%= link_to 'New Series', new_series_path, class: 'btn btn-gradient' %>
             </div>
+          <% end %>
 
-            <% if current_user&.admin? %>
-              <div class="admin-actions-section">
-                <%= link_to new_series_path, class: 'admin-create-btn' do %>
-                  <i class="fas fa-plus me-2"></i>Create New Series
-                <% end %>
-              </div>
-            <% end %>
-
-            <%= render 'results' %>
-          </turbo-frame>
-        <% end %>
-      <% end %>
+          <%= render 'results' %>
+        </div>
+      </turbo-frame>
     <% end %>
-  </div>
-</div>
+  <% end %>
+<% end %>

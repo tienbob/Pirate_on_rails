@@ -59,7 +59,7 @@
       <% if current_user && !current_user.admin? && !current_user.pro? %>
         <%= link_to 'Upgrade to Pro', upgrade_payment_path, class: 'btn btn-gradient btn-lg' %>
       <% else %>
-        <%= link_to 'Back to Movies', movies_path, class: 'btn btn-secondary btn-lg' %>
+        <%= link_to 'Back to Series', series_index_path, class: 'btn btn-secondary btn-lg' %>
       <% end %>
     </div>
   </div>

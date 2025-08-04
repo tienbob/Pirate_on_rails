@@ -16,7 +16,20 @@ Rails.application.configure do
   config.action_controller.perform_caching = true
 
   # Cache assets for far-future expiry since they are all digest stamped.
-  config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
+  config.public_file_server.headers = { 
+    "cache-control" => "public, max-age=#{1.year.to_i}",
+    "expires" => 1.year.from_now.to_formatted_s(:rfc822)
+  }
+
+  # Enable gzip compression
+  config.middleware.use Rack::Deflater
+
+  # Asset pipeline optimizations
+  config.assets.compress = true
+  config.assets.css_compressor = :sass
+  config.assets.js_compressor = :terser
+  config.assets.compile = false
+  config.assets.digest = true
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"

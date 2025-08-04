@@ -1,10 +1,16 @@
 class ApplicationController < ActionController::Base
   allow_browser versions: :modern
   before_action :configure_permitted_parameters, if: :devise_controller?
+  before_action :log_user_activity
+  
   include Pundit::Authorization
-  protect_from_forgery with: :exception
+  protect_from_forgery with: :exception, prepend: true
+  
+  # Security headers
+  before_action :set_security_headers
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
+  rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
   rescue_from StandardError, with: :handle_standard_error unless Rails.env.development? || Rails.env.test?
 
   private
@@ -14,10 +20,69 @@ class ApplicationController < ActionController::Base
     redirect_back(fallback_location: root_path)
   end
 
+  def record_not_found
+    flash[:alert] = "The requested resource was not found."
+    redirect_to root_path
+  end
+
   def handle_standard_error(exception)
-    logger.error(exception)
+    # Log the error with context
+    Rails.logger.error "Standard Error: #{exception.message}"
+    Rails.logger.error "Backtrace: #{exception.backtrace.join("\n")}"
+    Rails.logger.error "User: #{current_user&.email || 'Anonymous'}"
+    Rails.logger.error "Request: #{request.method} #{request.url}"
+    Rails.logger.error "Params: #{params.inspect}"
+    
+    # Send to error tracking service (Sentry, Rollbar, etc.)
+    # Sentry.capture_exception(exception) if defined?(Sentry)
+    
     flash[:alert] = "Something went wrong. Please try again."
     redirect_back(fallback_location: root_path)
+  end
+
+  def set_security_headers
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    
+    # Content Security Policy (adjust based on your needs)
+    if Rails.env.development?
+      # More permissive CSP for development
+      response.headers['Content-Security-Policy'] = [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://cdn.jsdelivr.net",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net",
+        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+        "img-src 'self' data: https:",
+        "media-src 'self' blob:",
+        "connect-src 'self' https://api.stripe.com",
+        "frame-src https://js.stripe.com"
+      ].join('; ')
+    else
+      # Stricter CSP for production
+      response.headers['Content-Security-Policy'] = [
+        "default-src 'self'",
+        "script-src 'self' https://js.stripe.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net",
+        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
+        "img-src 'self' data: https:",
+        "media-src 'self' blob:",
+        "connect-src 'self' https://api.stripe.com",
+        "frame-src https://js.stripe.com"
+      ].join('; ')
+    end
+  end
+
+  def log_user_activity
+    return unless current_user && !devise_controller?
+    
+    # Log user activity for analytics/security
+    Rails.logger.info "User Activity: #{current_user.email} - #{request.method} #{request.path}"
+    
+    # Update last seen timestamp
+    current_user.touch(:last_seen_at) if current_user.respond_to?(:last_seen_at)
   end
 
   protected
@@ -27,4 +92,34 @@ class ApplicationController < ActionController::Base
     devise_parameter_sanitizer.permit(:account_update, keys: [:name, :role])
   end
 
+  # Rate limiting helper
+  def check_general_rate_limit(key_suffix: '', limit: 100, period: 1.hour)
+    rate_limit_key = "rate_limit_#{request.remote_ip}_#{current_user&.id}_#{key_suffix}"
+    
+    current_count = Rails.cache.read(rate_limit_key).to_i
+    if current_count >= limit
+      flash[:alert] = 'Too many requests. Please try again later.'
+      redirect_back(fallback_location: root_path)
+      return false
+    end
+    
+    Rails.cache.increment(rate_limit_key, 1, expires_in: period)
+    true
+  end
+
+  # Helper to check if user is admin
+  def require_admin!
+    unless current_user&.admin?
+      flash[:alert] = 'You are not authorized to access this area.'
+      redirect_to root_path
+    end
+  end
+
+  # Helper to check if user is authenticated
+  def require_authentication!
+    unless current_user
+      flash[:alert] = 'You must be logged in to access this page.'
+      redirect_to new_user_session_path
+    end
+  end
 end

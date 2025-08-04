@@ -1,6 +1,9 @@
 <% content_for :head do %>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <%= stylesheet_link_tag 'cinema_movie_show', media: 'all' %>
+  <% content_for :preload_images do %>
+    <% if @movie.video_file.attached? %>
+      <%= preload_link_tag url_for(@movie.video_file), as: :video %>
+    <% end %>
+  <% end %>
 <% end %>
 
 <div class="movie-hero-section">
@@ -10,12 +13,27 @@
         <div class="movie-showcase-card p-5">
           <div class="row align-items-center">
             <div class="col-lg-6 mb-4 mb-lg-0">
-              <div class="movie-video-container">
-                <% if @movie.video_file.attached? %>
-                  <%= video_tag url_for(@movie.video_file), 
+              <div class="movie-video-container" 
+                   data-controller="video-analytics" 
+                   data-video-analytics-movie-id-value="<%= @movie.id %>" 
+                   data-video-analytics-csrf-token-value="<%= form_authenticity_token %>">
+                <% if @movie.video_file.attached? && @movie.viewable_by?(current_user) %>
+                  <%= video_tag @movie.cached_video_url || url_for(@movie.video_file), 
                       controls: true, 
                       class: "movie-video", 
-                      preload: "metadata" %>
+                      preload: "metadata",
+                      data: { 
+                        "video-analytics-target": "video"
+                      } %>
+                <% elsif @movie.video_file.attached? && !@movie.viewable_by?(current_user) %>
+                  <div class="movie-placeholder pro-content-locked">
+                    <i class="fas fa-lock me-2"></i>
+                    <div>
+                      <h5>Pro Content</h5>
+                      <p>Upgrade to Pro to watch this content</p>
+                      <%= link_to "Upgrade Now", upgrade_payment_path, class: "btn btn-primary btn-sm" %>
+                    </div>
+                  </div>
                 <% else %>
                   <div class="movie-placeholder">
                     <i class="fas fa-film me-2"></i>
@@ -26,15 +44,19 @@
             </div>
             
             <div class="col-lg-6">
-              <h1 class="movie-title"><%= @movie.title %></h1>
+              <h1 class="movie-title"><%= sanitize @movie.title %></h1>
               <div class="movie-meta">
                 <% if @movie.release_date %>
                   <i class="fas fa-calendar-alt me-2"></i>
                   Released <%= @movie.release_date.strftime('%B %d, %Y') %>
                 <% end %>
+                <% if @movie.formatted_duration %>
+                  <i class="fas fa-clock ms-3 me-2"></i>
+                  <%= @movie.formatted_duration %>
+                <% end %>
               </div>
               
-              <% if @movie.is_pro %>
+              <% if @movie.is_pro? %>
                 <div class="movie-badge pro">
                   <i class="fas fa-crown me-2"></i>Pro Content
                 </div>
@@ -44,7 +66,7 @@
                 </div>
               <% end %>
               
-              <p class="movie-description"><%= @movie.description %></p>
+              <p class="movie-description"><%= sanitize @movie.description %></p>
               
               <% if @movie.tags.any? %>
                 <div class="movie-tags">
@@ -52,8 +74,27 @@
                     <i class="fas fa-tags me-2"></i>Genres
                   </span>
                   <div>
-                    <% @movie.tags.each do |tag| %>
-                      <span class="movie-tag"><%= tag.name %></span>
+                    <% @movie.tags.limit(5).each do |tag| %>
+                      <span class="movie-tag"><%= sanitize tag.name %></span>
+                    <% end %>
+                    <% if @movie.tags.count > 5 %>
+                      <span class="movie-tag-more">+<%= @movie.tags.count - 5 %> more</span>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+              
+              <!-- Related Movies Section -->
+              <% if @movie.related_movies.any? %>
+                <div class="related-movies-preview">
+                  <h6><i class="fas fa-film me-2"></i>You might also like</h6>
+                  <div class="related-movies-list">
+                    <% @movie.related_movies.limit(3).each do |related| %>
+                      <% if related.viewable_by?(current_user) %>
+                        <%= link_to movie_path(related), class: "related-movie-link" do %>
+                          <small><%= sanitize related.title %></small>
+                        <% end %>
+                      <% end %>
                     <% end %>
                   </div>
                 </div>
