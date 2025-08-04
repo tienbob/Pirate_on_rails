@@ -1,53 +1,94 @@
 
+<%= stylesheet_link_tag 'cinema_users', media: 'all' %>
+
 <div class="container py-5">
   <div class="row justify-content-center">
     <div class="col-lg-6">
-      <div class="card border-0 shadow-lg rounded-4">
-        <div class="card-body p-5">
-          <h2 class="fw-bold mb-4 text-center">Edit Profile</h2>
-          <%= form_with(model: @user, local: true, html: { data: { controller: "form-validation" } }) do |form| %>
-            <% if @user.errors.any? %>
-              <div id="error_explanation" class="alert alert-danger">
-                <h4 class="mb-2"><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</h4>
-                <ul class="mb-0">
-                  <% @user.errors.full_messages.each do |message| %>
-                    <li><%= message %></li>
-                  <% end %>
-                </ul>
-              </div>
-            <% end %>
-            <div class="mb-3">
-              <%= form.label :name, class: "form-label fw-semibold" %>
-              <%= form.text_field :name, class: "form-control", required: true, 'data-form-validation-target': 'input' %>
-            </div>
-            <div class="mb-3">
-              <%= form.label :email, class: "form-label fw-semibold" %>
-              <%= form.email_field :email, class: "form-control", required: true, 'data-form-validation-target': 'email input' %>
-            </div>
-            <% if current_user.admin? %>
-              <div class="mb-3">
-                <%= form.label :role, class: "form-label fw-semibold" %>
-                <%= form.select :role, options_for_select([["Free", 'free'], ["Pro", 'pro'], ["Admin", 'admin']], @user.role), {}, class: 'form-select', 'data-form-validation-target': 'input' %>
-              </div>
-            <% end %>
-            <% if current_user.admin? || current_user == @user %>
-              <hr class="my-4">
-              <h5 class="fw-bold mb-3">Change Password</h5>
-              <div class="mb-3">
-                <%= form.label :password, class: "form-label" %>
-                <%= form.password_field :password, autocomplete: "new-password", class: "form-control", 'data-form-validation-target': 'password input' %>
-                <small class="form-text text-muted">Leave blank if you don't want to change it.</small>
-              </div>
-              <div class="mb-4">
-                <%= form.label :password_confirmation, class: "form-label" %>
-                <%= form.password_field :password_confirmation, autocomplete: "new-password", class: "form-control", 'data-form-validation-target': 'passwordConfirmation input' %>
-                <small class="form-text text-muted">Enter the new password again for confirmation.</small>
-              </div>
-            <% end %>
-            <div class="d-grid gap-2">
-              <%= form.submit 'Save Changes', class: "btn btn-gradient btn-lg fw-bold" %>
+      <div class="user-form-container">
+        <h2 class="user-form-title">
+          <i class="fas fa-user-edit me-3"></i>Edit Profile
+        </h2>
+        
+        <%= form_with(model: @user, local: true, html: { data: { controller: "form-validation" } }) do |form| %>
+          <% if @user.errors.any? %>
+            <div class="user-error-container">
+              <h4 class="user-error-title">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:
+              </h4>
+              <ul class="user-error-list">
+                <% @user.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
             </div>
           <% end %>
+          
+          <div class="user-form-group">
+            <%= form.label :name, class: "user-form-label" do %>
+              <i class="fas fa-user me-2"></i>Full Name
+            <% end %>
+            <%= form.text_field :name, class: "user-form-input", required: true, 'data-form-validation-target': 'input', placeholder: "Enter your full name" %>
+          </div>
+          
+          <div class="user-form-group">
+            <%= form.label :email, class: "user-form-label" do %>
+              <i class="fas fa-envelope me-2"></i>Email Address
+            <% end %>
+            <%= form.email_field :email, class: "user-form-input", required: true, 'data-form-validation-target': 'email input', placeholder: "Enter your email address" %>
+          </div>
+          
+          <% if current_user.admin? %>
+            <div class="user-form-group">
+              <%= form.label :role, class: "user-form-label" do %>
+                <i class="fas fa-user-tag me-2"></i>Account Role
+              <% end %>
+              <%= form.select :role, 
+                  options_for_select([
+                    ["Free User", 'free'], 
+                    ["Pro User", 'pro'], 
+                    ["Administrator", 'admin']
+                  ], @user.role), 
+                  {}, 
+                  class: 'user-form-select', 
+                  'data-form-validation-target': 'input' %>
+            </div>
+          <% end %>
+          
+          <% if current_user.admin? || current_user == @user %>
+            <hr style="border-color: rgba(148, 163, 184, 0.2); margin: 2rem 0;">
+            
+            <h5 style="color: #e2e8f0; font-weight: 600; margin-bottom: 1.5rem; font-family: 'Inter', sans-serif;">
+              <i class="fas fa-lock me-2"></i>Change Password
+            </h5>
+            
+            <div class="user-form-group">
+              <%= form.label :password, class: "user-form-label" do %>
+                <i class="fas fa-key me-2"></i>New Password
+              <% end %>
+              <%= form.password_field :password, autocomplete: "new-password", class: "user-form-input", 'data-form-validation-target': 'password input', placeholder: "Enter new password" %>
+              <small class="user-form-text">Leave blank if you don't want to change it.</small>
+            </div>
+            
+            <div class="user-form-group">
+              <%= form.label :password_confirmation, class: "user-form-label" do %>
+                <i class="fas fa-check-circle me-2"></i>Confirm Password
+              <% end %>
+              <%= form.password_field :password_confirmation, autocomplete: "new-password", class: "user-form-input", 'data-form-validation-target': 'passwordConfirmation input', placeholder: "Confirm new password" %>
+              <small class="user-form-text">Enter the new password again for confirmation.</small>
+            </div>
+          <% end %>
+          
+          <div class="d-grid gap-2 mt-4">
+            <%= form.submit 'Save Changes', class: "user-form-submit" %>
+          </div>
+        <% end %>
+        
+        <div class="text-center mt-3">
+          <%= link_to user_path(@user), class: 'user-action-btn secondary' do %>
+            <i class="fas fa-arrow-left me-2"></i>Back to Profile
+          <% end %>
+        </div>
         </div>
       </div>
     </div>

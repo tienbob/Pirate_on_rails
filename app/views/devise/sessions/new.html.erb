@@ -1,5 +1,5 @@
 
-<!-- Styles moved to custom_views.css -->
+<%= stylesheet_link_tag 'cinema_auth', media: 'all' %>
 
 <script>
   document.body.classList.add('bg-login');
@@ -8,37 +8,69 @@
 <div class="container py-5">
   <div class="row justify-content-center align-items-center min-vh-100">
     <div class="col-md-7 col-lg-5">
-      <div class="card border-0 shadow-lg rounded-4">
-        <div class="card-body p-5">
-          <div class="text-center mb-4">
-            <img src="/icon.png" alt="Pirate On Rails" width="64" height="64" class="mb-2">
-            <h2 class="card-title fw-bold mb-1" style="letter-spacing:1px;">Welcome Back</h2>
-            <p class="text-muted">Log in to continue watching!</p>
+      <div class="auth-card p-5">
+        <div class="auth-header">
+          <div class="auth-logo">
+            <img src="/icon.png" alt="Pirate On Rails">
           </div>
-          <%= form_with(model: resource, url: session_path(resource_name), data: { turbo: true }, html: { class: "needs-validation", data: { controller: "form-validation" } }) do |f| %>
-            <div class="mb-3">
-              <%= f.label :email, class: "form-label fw-semibold" %>
-              <%= f.email_field :email, autofocus: true, class: "form-control form-control-lg rounded-3", placeholder: "you@email.com", required: true, 'data-form-validation-target': 'email input' %>
-            </div>
-            <div class="mb-3">
-              <%= f.label :password, class: "form-label fw-semibold" %>
-              <%= f.password_field :password, autocomplete: "current-password", class: "form-control form-control-lg rounded-3", placeholder: "Password", required: true, 'data-form-validation-target': 'password input' %>
-            </div>
-            <div class="form-check mb-3">
-              <%= f.check_box :remember_me, class: "form-check-input" %>
-              <%= f.label :remember_me, class: "form-check-label" %>
-            </div>
-            <div class="d-grid gap-2 mt-4">
-              <%= f.submit "Log in", class: "btn btn-gradient btn-lg fw-bold" %>
+          <h2 class="auth-title">Welcome Back</h2>
+          <p class="auth-subtitle">Sign in to continue your adventure</p>
+        </div>
+
+        <%= form_with(model: resource, url: session_path(resource_name), 
+            data: { turbo: true }, 
+            html: { class: "auth-form needs-validation", data: { controller: "form-validation" } }) do |f| %>
+          
+          <% if alert %>
+            <div class="auth-error">
+              <div class="auth-error-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                Sign In Error
+              </div>
+              <%= alert %>
             </div>
           <% end %>
-          <div class="mt-4 text-center">
-            <%= render "devise/shared/links" %>
+
+          <div class="auth-form-group">
+            <%= f.label :email, class: "auth-form-label" do %>
+              <i class="fas fa-envelope"></i>Email Address
+            <% end %>
+            <%= f.email_field :email, 
+                autofocus: true, 
+                class: "auth-form-input", 
+                placeholder: "you@example.com", 
+                required: true, 
+                'data-form-validation-target': 'email input' %>
           </div>
+
+          <div class="auth-form-group">
+            <%= f.label :password, class: "auth-form-label" do %>
+              <i class="fas fa-lock"></i>Password
+            <% end %>
+            <%= f.password_field :password, 
+                autocomplete: "current-password", 
+                class: "auth-form-input", 
+                placeholder: "Enter your password", 
+                required: true, 
+                'data-form-validation-target': 'password input' %>
+          </div>
+
+          <div class="auth-checkbox-group">
+            <%= f.check_box :remember_me, class: "auth-checkbox", id: "remember_me" %>
+            <%= f.label :remember_me, class: "auth-checkbox-label", for: "remember_me" do %>
+              Keep me signed in
+            <% end %>
+          </div>
+
+          <div class="d-grid gap-2 mt-4">
+            <%= f.submit "Sign In", class: "auth-submit-btn" %>
+          </div>
+        <% end %>
+
+        <div class="auth-links">
+          <%= render "devise/shared/links" %>
         </div>
       </div>
     </div>
   </div>
 </div>
-
-<!-- Styles moved to custom_views.css -->

@@ -13,9 +13,6 @@
       <meta name="current-user-id" content="<%= current_user.id %>">
     <% end %>
 
-    <!-- Preload critical resources -->
-    <%= preload_link_tag asset_path('cinema_bundle.css'), as: :style %>
-    
     <!-- Critical inline CSS for above-the-fold content -->
     <style>
       /* Critical CSS inlined for faster rendering */

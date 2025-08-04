@@ -110,9 +110,11 @@ module Searchable
         end
       end
     rescue => e
-      # If in a controller context, show a flash alert and redirect back
+      # Log error details for debugging
+      Rails.logger.error "Elasticsearch search_series error: #{e.class} - #{e.message}"
+      Rails.logger.error e.backtrace.join("\n") if e.backtrace
       if defined?(redirect_back)
-        flash[:alert] = "Search is not available, please try again later."
+        flash[:alert] = "Search is not available, please try again later. Error: #{e.class} - #{e.message}"
         redirect_back(fallback_location: series_index_path)
         return Series.none
       else

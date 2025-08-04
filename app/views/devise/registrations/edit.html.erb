@@ -1,0 +1,109 @@
+<%= stylesheet_link_tag 'cinema_auth', media: 'all' %>
+
+<script>
+  document.body.classList.add('bg-signup');
+</script>
+
+<div class="container py-5">
+  <div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-md-7 col-lg-6">
+      <div class="auth-card p-5">
+        <div class="auth-header">
+          <div class="auth-logo">
+            <img src="/icon.png" alt="Pirate On Rails">
+          </div>
+          <h2 class="auth-title">Edit Account</h2>
+          <p class="auth-subtitle">Update your account information</p>
+        </div>
+
+        <%= form_for(resource, as: resource_name, url: registration_path(resource_name), 
+            html: { method: :put, class: "auth-form" }) do |f| %>
+          
+          <%= render "devise/shared/error_messages", resource: resource %>
+
+          <div class="auth-form-group">
+            <%= f.label :email, class: "auth-form-label" do %>
+              <i class="fas fa-envelope"></i>Email Address
+            <% end %>
+            <%= f.email_field :email, 
+                autofocus: true, 
+                autocomplete: "email",
+                class: "auth-form-input", 
+                placeholder: "Enter your email address" %>
+            <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
+              <small class="auth-form-text" style="color: #f59e0b;">
+                <i class="fas fa-clock me-1"></i>
+                Waiting confirmation for: <%= resource.unconfirmed_email %>
+              </small>
+            <% end %>
+          </div>
+
+          <div class="auth-form-group">
+            <%= f.label :password, class: "auth-form-label" do %>
+              <i class="fas fa-lock"></i>New Password
+            <% end %>
+            <small class="auth-form-text">Leave blank if you don't want to change it</small>
+            <%= f.password_field :password, 
+                autocomplete: "new-password",
+                class: "auth-form-input", 
+                placeholder: "Enter new password (optional)" %>
+            <% if @minimum_password_length %>
+              <small class="auth-form-text">
+                Minimum <%= @minimum_password_length %> characters required
+              </small>
+            <% end %>
+          </div>
+
+          <div class="auth-form-group">
+            <%= f.label :password_confirmation, class: "auth-form-label" do %>
+              <i class="fas fa-check-circle"></i>Confirm New Password
+            <% end %>
+            <%= f.password_field :password_confirmation, 
+                autocomplete: "new-password",
+                class: "auth-form-input", 
+                placeholder: "Confirm new password" %>
+          </div>
+
+          <div class="auth-form-group">
+            <%= f.label :current_password, class: "auth-form-label" do %>
+              <i class="fas fa-shield-alt"></i>Current Password
+            <% end %>
+            <small class="auth-form-text">Required to confirm your changes</small>
+            <%= f.password_field :current_password, 
+                autocomplete: "current-password",
+                class: "auth-form-input", 
+                placeholder: "Enter your current password",
+                required: true %>
+          </div>
+
+          <div class="d-grid gap-2 mt-4">
+            <%= f.submit "Update Account", class: "auth-submit-btn" %>
+          </div>
+        <% end %>
+
+        <hr style="border-color: rgba(148, 163, 184, 0.2); margin: 2rem 0;">
+        
+        <div class="text-center">
+          <h5 style="color: #ef4444; font-family: 'Inter', sans-serif; margin-bottom: 1rem;">
+            <i class="fas fa-exclamation-triangle me-2"></i>Danger Zone
+          </h5>
+          <p style="color: #94a3b8; font-size: 0.875rem; margin-bottom: 1.5rem;">
+            Once you delete your account, there is no going back. Please be certain.
+          </p>
+          <%= button_to "Delete Account", registration_path(resource_name), 
+              data: { 
+                confirm: "Are you sure you want to permanently delete your account? This action cannot be undone.",
+                turbo_confirm: "Are you sure you want to permanently delete your account? This action cannot be undone?"
+              }, 
+              method: :delete,
+              class: "auth-submit-btn",
+              style: "background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); margin-bottom: 1rem;" %>
+          
+          <%= link_to :back, class: "auth-link" do %>
+            <i class="fas fa-arrow-left"></i>Go Back
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

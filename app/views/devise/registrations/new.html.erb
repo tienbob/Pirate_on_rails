@@ -1,6 +1,5 @@
 
-
-<!-- Styles moved to custom_views.css -->
+<%= stylesheet_link_tag 'cinema_auth', media: 'all' %>
 
 <script>
   document.body.classList.add('bg-signup');
@@ -9,41 +8,92 @@
 <div class="container py-5">
   <div class="row justify-content-center align-items-center min-vh-100">
     <div class="col-md-7 col-lg-5">
-      <div class="card border-0 shadow-lg rounded-4">
-        <div class="card-body p-5">
-          <div class="text-center mb-4">
-            <img src="/icon.png" alt="Pirate On Rails" width="64" height="64" class="mb-2">
-            <h2 class="card-title fw-bold mb-1" style="letter-spacing:1px;">Create Your Account</h2>
-            <p class="text-muted">Join Pirate On Rails and start watching!</p>
+      <div class="auth-card p-5">
+        <div class="auth-header">
+          <div class="auth-logo">
+            <img src="/icon.png" alt="Pirate On Rails">
           </div>
-          <%= form_with(model: resource, url: registration_path(resource_name), data: { turbo: true }, html: { class: "needs-validation", data: { controller: "form-validation" } }) do |f| %>
-            <div class="mb-3">
-              <%= f.label :name, class: "form-label fw-semibold" %>
-              <%= f.text_field :name, autofocus: true, class: "form-control form-control-lg rounded-3", placeholder: "Your Name", required: true, 'data-form-validation-target': 'input' %>
-            </div>
-            <div class="mb-3">
-              <%= f.label :email, class: "form-label fw-semibold" %>
-              <%= f.email_field :email, class: "form-control form-control-lg rounded-3", placeholder: "you@email.com", required: true, 'data-form-validation-target': 'email input' %>
-            </div>
-            <div class="mb-3">
-              <%= f.label :password, class: "form-label fw-semibold" %>
-              <%= f.password_field :password, autocomplete: "new-password", class: "form-control form-control-lg rounded-3", placeholder: "Password", required: true, 'data-form-validation-target': 'password input' %>
-            </div>
-            <div class="mb-3">
-              <%= f.label :password_confirmation, class: "form-label fw-semibold" %>
-              <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form-control form-control-lg rounded-3", placeholder: "Confirm Password", required: true, 'data-form-validation-target': 'passwordConfirmation input' %>
-            </div>
-            <div class="d-grid gap-2 mt-4">
-              <%= f.submit "Sign up", class: "btn btn-gradient btn-lg fw-bold" %>
+          <h2 class="auth-title">Create Your Account</h2>
+          <p class="auth-subtitle">Join the adventure and start streaming!</p>
+        </div>
+
+        <%= form_with(model: resource, url: registration_path(resource_name), 
+            data: { turbo: true }, 
+            html: { class: "auth-form needs-validation", data: { controller: "form-validation" } }) do |f| %>
+          
+          <% if resource.errors.any? %>
+            <div class="auth-error">
+              <div class="auth-error-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                <%= pluralize(resource.errors.count, "error") %> prohibited this account from being saved:
+              </div>
+              <ul class="auth-error-list">
+                <% resource.errors.full_messages.each do |message| %>
+                  <li><%= message %></li>
+                <% end %>
+              </ul>
             </div>
           <% end %>
-          <div class="mt-4 text-center">
-            <%= render "devise/shared/links" %>
+
+          <div class="auth-form-group">
+            <%= f.label :name, class: "auth-form-label" do %>
+              <i class="fas fa-user"></i>Full Name
+            <% end %>
+            <%= f.text_field :name, 
+                autofocus: true, 
+                class: "auth-form-input", 
+                placeholder: "Enter your full name", 
+                required: true, 
+                'data-form-validation-target': 'input' %>
           </div>
+
+          <div class="auth-form-group">
+            <%= f.label :email, class: "auth-form-label" do %>
+              <i class="fas fa-envelope"></i>Email Address
+            <% end %>
+            <%= f.email_field :email, 
+                class: "auth-form-input", 
+                placeholder: "you@example.com", 
+                required: true, 
+                'data-form-validation-target': 'email input' %>
+          </div>
+
+          <div class="auth-form-group">
+            <%= f.label :password, class: "auth-form-label" do %>
+              <i class="fas fa-lock"></i>Password
+            <% end %>
+            <%= f.password_field :password, 
+                autocomplete: "new-password", 
+                class: "auth-form-input", 
+                placeholder: "Create a strong password", 
+                required: true, 
+                'data-form-validation-target': 'password input' %>
+            <div class="password-strength">
+              <div class="password-strength-bar" data-strength=""></div>
+            </div>
+          </div>
+
+          <div class="auth-form-group">
+            <%= f.label :password_confirmation, class: "auth-form-label" do %>
+              <i class="fas fa-check-circle"></i>Confirm Password
+            <% end %>
+            <%= f.password_field :password_confirmation, 
+                autocomplete: "new-password", 
+                class: "auth-form-input", 
+                placeholder: "Confirm your password", 
+                required: true, 
+                'data-form-validation-target': 'passwordConfirmation input' %>
+          </div>
+
+          <div class="d-grid gap-2 mt-4">
+            <%= f.submit "Create Account", class: "auth-submit-btn" %>
+          </div>
+        <% end %>
+
+        <div class="auth-links">
+          <%= render "devise/shared/links" %>
         </div>
       </div>
     </div>
   </div>
 </div>
-
-<!-- Styles moved to custom_views.css -->

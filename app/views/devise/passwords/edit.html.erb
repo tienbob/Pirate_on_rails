@@ -1,0 +1,65 @@
+<%= stylesheet_link_tag 'cinema_auth', media: 'all' %>
+
+<script>
+  document.body.classList.add('bg-login');
+</script>
+
+<div class="container py-5">
+  <div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-md-7 col-lg-5">
+      <div class="auth-card p-5">
+        <div class="auth-header">
+          <div class="auth-logo">
+            <img src="/icon.png" alt="Pirate On Rails">
+          </div>
+          <h2 class="auth-title">Change Password</h2>
+          <p class="auth-subtitle">Create a new secure password</p>
+        </div>
+
+        <%= form_for(resource, as: resource_name, url: password_path(resource_name), 
+            html: { method: :put, class: "auth-form" }) do |f| %>
+          
+          <%= render "devise/shared/error_messages", resource: resource %>
+          <%= f.hidden_field :reset_password_token %>
+
+          <div class="auth-form-group">
+            <%= f.label :password, class: "auth-form-label" do %>
+              <i class="fas fa-lock"></i>New Password
+            <% end %>
+            <% if @minimum_password_length %>
+              <small class="auth-form-text">
+                Minimum <%= @minimum_password_length %> characters required
+              </small>
+            <% end %>
+            <%= f.password_field :password, 
+                autofocus: true, 
+                autocomplete: "new-password",
+                class: "auth-form-input", 
+                placeholder: "Enter your new password" %>
+            <div class="password-strength">
+              <div class="password-strength-bar" data-strength=""></div>
+            </div>
+          </div>
+
+          <div class="auth-form-group">
+            <%= f.label :password_confirmation, class: "auth-form-label" do %>
+              <i class="fas fa-check-circle"></i>Confirm New Password
+            <% end %>
+            <%= f.password_field :password_confirmation, 
+                autocomplete: "new-password",
+                class: "auth-form-input", 
+                placeholder: "Confirm your new password" %>
+          </div>
+
+          <div class="d-grid gap-2 mt-4">
+            <%= f.submit "Update Password", class: "auth-submit-btn" %>
+          </div>
+        <% end %>
+
+        <div class="auth-links">
+          <%= render "devise/shared/links" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

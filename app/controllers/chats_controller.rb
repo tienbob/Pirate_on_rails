@@ -6,16 +6,31 @@ class ChatsController < ApplicationController
   # 1. User chat message comes in
   def create
     user_message = params[:message]
-    response = Faraday.post("http://localhost:5000/chat", { message: user_message }.to_json, "Content-Type" => "application/json")
-    ai_response = JSON.parse(response.body)["response"] rescue "Sorry, AI service unavailable."
+    
+    begin
+      response = Faraday.post("http://localhost:5000/chat", { message: user_message }.to_json, "Content-Type" => "application/json")
+      ai_response = JSON.parse(response.body)["response"] rescue "Sorry, I couldn't process your request."
+    rescue Faraday::ConnectionFailed, Errno::ECONNREFUSED => e
+      Rails.logger.error "AI service connection failed: #{e.message}"
+      ai_response = "Sorry, the AI service is currently unavailable. Please try again later."
+    rescue => e
+      Rails.logger.error "Unexpected error in chat: #{e.message}"
+      ai_response = "Sorry, something went wrong. Please try again."
+    end
+    
     chat = Chat.create!(user_message: user_message, ai_response: ai_response, user: current_user)
+    
     # Broadcast to Action Cable
     ChatChannel.broadcast_to(current_user, {
       user_message: chat.user_message,
       ai_response: chat.ai_response,
       created_at: chat.created_at
     })
+    
     render json: { response: ai_response }
+  rescue ActiveRecord::RecordInvalid => e
+    Rails.logger.error "Failed to save chat: #{e.message}"
+    render json: { response: "Sorry, couldn't save your message. Please try again." }
   end
 
   # 2. Python agent can call this endpoint to fetch all series data for semantic search

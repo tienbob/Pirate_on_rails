@@ -12,9 +12,11 @@
       
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto d-flex align-items-center gap-2">
-          <li class="nav-item">
-            <%= link_to 'Series', series_index_path, class: 'cinema-nav-link' %>
-          </li>
+          <% if user_signed_in? %>
+            <li class="nav-item">
+              <%= link_to 'Series', series_index_path, class: 'cinema-nav-link' %>
+            </li>
+          <% end %>
           <% if user_signed_in? && current_user.admin? %>
             <li class="nav-item">
               <%= link_to 'Users', users_path, class: 'cinema-nav-link' %>
