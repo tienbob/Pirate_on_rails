@@ -122,4 +122,78 @@ class ApplicationController < ActionController::Base
       redirect_to new_user_session_path
     end
   end
+
+  # Helper method to get user's subscription information
+  def get_user_subscription_info(user)
+    return nil unless user&.pro?
+
+    begin
+      # Search for user's customer in Stripe
+      customers = Stripe::Customer.list(email: user.email, limit: 1)
+      return nil if customers.data.empty?
+
+      customer = customers.data.first
+      
+      # Get active subscriptions for this customer
+      subscriptions = Stripe::Subscription.list(
+        customer: customer.id,
+        status: 'active',
+        limit: 1
+      )
+      
+      return nil if subscriptions.data.empty?
+      
+      subscription = subscriptions.data.first
+      
+      # Safely extract subscription data with proper nil checks
+      subscription_data = {
+        subscription_id: subscription.id,
+        customer_id: customer.id,
+        status: subscription.status,
+        current_period_start: nil,
+        current_period_end: nil,
+        cancel_at_period_end: false,
+        cancelled_at: nil,
+        amount: nil,
+        currency: 'usd',
+        interval: 'month'
+      }
+      
+      # Safely set period dates
+      if subscription.respond_to?(:current_period_start) && subscription.current_period_start
+        subscription_data[:current_period_start] = Time.at(subscription.current_period_start)
+      end
+      
+      if subscription.respond_to?(:current_period_end) && subscription.current_period_end
+        subscription_data[:current_period_end] = Time.at(subscription.current_period_end)
+      end
+      
+      # Safely set cancellation info
+      if subscription.respond_to?(:cancel_at_period_end)
+        subscription_data[:cancel_at_period_end] = subscription.cancel_at_period_end
+      end
+      
+      if subscription.respond_to?(:cancelled_at) && subscription.cancelled_at
+        subscription_data[:cancelled_at] = Time.at(subscription.cancelled_at)
+      end
+      
+      # Safely set pricing info
+      if subscription.items&.data&.first&.price
+        price = subscription.items.data.first.price
+        subscription_data[:amount] = price.unit_amount if price.respond_to?(:unit_amount)
+        subscription_data[:currency] = price.currency if price.respond_to?(:currency)
+        if price.respond_to?(:recurring) && price.recurring&.respond_to?(:interval)
+          subscription_data[:interval] = price.recurring.interval
+        end
+      end
+      
+      subscription_data
+    rescue Stripe::StripeError => e
+      Rails.logger.error "Error fetching subscription info for user #{user.email}: #{e.message}"
+      nil
+    rescue StandardError => e
+      Rails.logger.error "Unexpected error fetching subscription info for user #{user.email}: #{e.message}"
+      nil
+    end
+  end
 end

@@ -36,6 +36,10 @@
             <li class="nav-item">
               <%= link_to 'Upgrade to Pro', upgrade_payment_path, class: 'cinema-nav-link upgrade-btn' %>
             </li>
+          <% elsif user_signed_in? && current_user.pro? && !current_user.admin? %>
+            <li class="nav-item">
+              <%= link_to 'Manage Subscription', manage_subscription_path, class: 'cinema-nav-link' %>
+            </li>
           <% end %>
           <% if user_signed_in? %>
             <li class="nav-item">

@@ -1,9 +1,113 @@
-<h1>Payment Details</h1>
-<p>
-  <strong>ID:</strong> <%= @payment.id %><br>
-  <strong>Amount:</strong> <%= @payment.amount %><br>
-  <strong>Status:</strong> <%= @payment.status %><br>
-  <strong>User:</strong> <%= @payment.user&.email %><br>
-  <strong>Created at:</strong> <%= @payment.created_at %>
-</p>
-<a href="<%= payments_path %>">Back to Payments</a>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-lg rounded-4">
+        <div class="card-header bg-primary text-white">
+          <h1 class="mb-0">Payment Details</h1>
+        </div>
+        <div class="card-body p-4">
+          <div class="row">
+            <div class="col-md-6">
+              <h5>Payment Information</h5>
+              <table class="table table-borderless">
+                <tr>
+                  <td><strong>ID:</strong></td>
+                  <td><%= @payment.id %></td>
+                </tr>
+                <tr>
+                  <td><strong>Amount:</strong></td>
+                  <td><%= @payment.formatted_amount %></td>
+                </tr>
+                <tr>
+                  <td><strong>Currency:</strong></td>
+                  <td><%= @payment.currency.upcase %></td>
+                </tr>
+                <tr>
+                  <td><strong>Status:</strong></td>
+                  <td>
+                    <span class="badge <%= status_badge_class(@payment.status) %>">
+                      <%= @payment.status.humanize %>
+                    </span>
+                  </td>
+                </tr>
+                <% if @payment.stripe_charge_id.present? %>
+                <tr>
+                  <td><strong>Stripe ID:</strong></td>
+                  <td><code><%= @payment.stripe_charge_id %></code></td>
+                </tr>
+                <% end %>
+              </table>
+            </div>
+            <div class="col-md-6">
+              <h5>User & Timing</h5>
+              <table class="table table-borderless">
+                <tr>
+                  <td><strong>User:</strong></td>
+                  <td><%= @payment.user&.email %></td>
+                </tr>
+                <tr>
+                  <td><strong>Created:</strong></td>
+                  <td><%= @payment.created_at.strftime("%B %d, %Y at %I:%M %p") %></td>
+                </tr>
+                <tr>
+                  <td><strong>Updated:</strong></td>
+                  <td><%= @payment.updated_at.strftime("%B %d, %Y at %I:%M %p") %></td>
+                </tr>
+                <% if @payment.processed_at.present? %>
+                <tr>
+                  <td><strong>Processed:</strong></td>
+                  <td><%= @payment.processed_at.strftime("%B %d, %Y at %I:%M %p") %></td>
+                </tr>
+                <% end %>
+              </table>
+            </div>
+          </div>
+          
+          <% if @payment.error_message.present? %>
+          <div class="row mt-4">
+            <div class="col-12">
+              <h5>Error Details</h5>
+              <div class="alert alert-danger">
+                <%= @payment.error_message %>
+              </div>
+            </div>
+          </div>
+          <% end %>
+          
+          <% if @payment.metadata.present? %>
+          <div class="row mt-4">
+            <div class="col-12">
+              <h5>Additional Information</h5>
+              <pre class="bg-light p-3 rounded"><%= @payment.metadata %></pre>
+            </div>
+          </div>
+          <% end %>
+        </div>
+        <div class="card-footer">
+          <div class="d-flex justify-content-between">
+            <%= link_to "Back to Payments", payments_path, class: "btn btn-secondary" %>
+            <% if current_user.admin? %>
+              <%= link_to "Edit Payment", edit_payment_path(@payment), class: "btn btn-outline-primary" if false %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% content_for :javascript do %>
+<script>
+function status_badge_class(status) {
+  switch(status) {
+    case 'completed': return 'bg-success';
+    case 'pending': return 'bg-warning';
+    case 'processing': return 'bg-info';
+    case 'failed': return 'bg-danger';
+    case 'refunded': return 'bg-secondary';
+    case 'cancelled': return 'bg-dark';
+    default: return 'bg-secondary';
+  }
+}
+</script>
+<% end %>

@@ -3,20 +3,20 @@ class Payment < ApplicationRecord
 
   validates :amount, presence: true, numericality: { greater_than: 0 }
   validates :status, presence: true, inclusion: { 
-    in: %w[pending processing completed failed refunded cancelled],
+    in: %w[completed failed refunded cancelled],
     message: "%{value} is not a valid status" 
   }
   validates :user_id, presence: true
   validates :currency, presence: true, inclusion: { 
-    in: %w[usd eur gbp],
+    in: %w[usd eur gbp sgd],
     message: "%{value} is not a supported currency" 
   }
-  validates :stripe_charge_id, presence: true, uniqueness: true
+  validates :stripe_charge_id, uniqueness: true, allow_blank: true
 
   # Scopes for better querying
   scope :completed, -> { where(status: 'completed') }
-  scope :pending, -> { where(status: 'pending') }
   scope :failed, -> { where(status: 'failed') }
+  scope :cancelled, -> { where(status: 'cancelled') }
   scope :recent, -> { order(created_at: :desc) }
   scope :for_user, ->(user) { where(user: user) }
 
@@ -25,8 +25,12 @@ class Payment < ApplicationRecord
     status == 'completed'
   end
 
-  def pending?
-    status == 'pending'
+  def failed?
+    status == 'failed'
+  end
+
+  def cancelled?
+    status == 'cancelled'
   end
 
   def failed?

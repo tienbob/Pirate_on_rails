@@ -80,6 +80,10 @@ module Searchable
       Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
         query = params[:q]
         tags = params[:tags]
+        # Fix for tags submitted as a single comma-separated string
+        if tags.is_a?(Array) && tags.size == 1 && tags.first.include?(',')
+          tags = tags.first.split(',').map(&:strip)
+        end
         search_conditions = []
         # Add title match if present
         if query.present?
@@ -96,6 +100,7 @@ module Searchable
         end
         # If any search conditions, use Elasticsearch; else return all series
         if search_conditions.any?
+          Rails.logger.info "ElasticSearch: Searching series with conditions: #{search_conditions.inspect}"
           series = Series.__elasticsearch__.search({
             query: {
               bool: {
@@ -104,9 +109,11 @@ module Searchable
             }
           }).records
           ar_series = Series.includes(:tags, movies: :tags).where(id: series.map(&:id))
+          Rails.logger.info "ElasticSearch: Found #{ar_series.inspect} series matching conditions."
           ar_series
         else
           Series.includes(:tags, movies: :tags).all
+          Rails.logger.info "ElasticSearch: No search conditions provided, returning all series."
         end
       end
     rescue => e

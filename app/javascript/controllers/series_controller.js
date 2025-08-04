@@ -4,7 +4,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 // Stimulus controller for the series search form.
-// Handles tag selection logic.
+// Handles tag selection logic and loading animation.
 // The form and results should be wrapped in Turbo Frames in the view for best UX.
 export default class extends Controller {
   static targets = ["tagSelect", "selectedTags"]
@@ -42,15 +42,74 @@ export default class extends Controller {
           this.selectedTagsTarget.value = selected.join(',');
         });
       });
-      // On form submit, update hidden input value
-      const form = document.getElementById('series-search-form');
-      if (form) {
-        form.addEventListener('submit', e => {
-          this.selectedTagsTarget.value = selected.join(',');
-        });
-      } else {
-        console.warn('[series-controller] series-search-form not found!');
+    }
+
+    // Set up loading animation with better event handling
+    this.setupLoadingAnimation();
+  }
+
+  setupLoadingAnimation() {
+    // Listen for Turbo Frame events on the document
+    document.addEventListener('turbo:frame-load', (event) => {
+      console.log('Turbo frame loaded:', event.target.id);
+      if (event.target.id === 'series') {
+        this.hideLoading();
       }
+    });
+
+    document.addEventListener('turbo:frame-missing', (event) => {
+      console.log('Turbo frame missing:', event.target.id);
+      if (event.target.id === 'series') {
+        this.hideLoading();
+      }
+    });
+
+    // Also hide loading after a timeout as fallback
+    document.addEventListener('turbo:submit-start', (event) => {
+      if (event.target.id === 'series-search-form') {
+        console.log('Search form submitted, showing loading');
+        this.showLoading();
+        // Fallback: hide loading after 10 seconds
+        setTimeout(() => {
+          this.hideLoading();
+        }, 10000);
+      }
+    });
+  }
+
+  showLoading() {
+    console.log('Showing loading animation');
+    const loadingEl = document.getElementById('search-loading');
+    const resultsEl = document.getElementById('search-results');
+    
+    if (loadingEl) {
+      loadingEl.style.display = 'block';
+      console.log('Loading element shown');
+    } else {
+      console.warn('Loading element not found');
+    }
+    
+    if (resultsEl) {
+      resultsEl.style.display = 'none';
+      console.log('Results element hidden');
+    } else {
+      console.warn('Results element not found');
+    }
+  }
+
+  hideLoading() {
+    console.log('Hiding loading animation');
+    const loadingEl = document.getElementById('search-loading');
+    const resultsEl = document.getElementById('search-results');
+    
+    if (loadingEl) {
+      loadingEl.style.display = 'none';
+      console.log('Loading element hidden');
+    }
+    
+    if (resultsEl) {
+      resultsEl.style.display = 'block';
+      console.log('Results element shown');
     }
   }
 }

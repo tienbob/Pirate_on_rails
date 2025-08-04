@@ -132,6 +132,10 @@
                   <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
               <% end %>
+              
+              <!-- Subscription Status Alert -->
+              <%= render 'shared/subscription_alert' if user_signed_in? %>
+              
               <%= yield %>
             </div>
           </div>

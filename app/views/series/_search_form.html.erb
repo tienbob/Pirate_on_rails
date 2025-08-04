@@ -1,7 +1,7 @@
 <%= stylesheet_link_tag 'cinema_series_search', media: 'all' %>
 
 <div class="series-search-container" data-controller="series">
-  <form id="series-search-form" class="series-search-form" action="<%= series_index_path %>" method="get" data-turbo-frame="series">
+  <form id="series-search-form" class="series-search-form" action="<%= series_index_path %>" method="get" data-turbo-frame="series" data-action="submit->series#showLoading">
     <div class="search-input-row">
       <input type="text" 
              name="q" 

@@ -6,7 +6,7 @@
 
 <% current_page = @series.respond_to?(:current_page) ? @series.current_page : 1 %>
 <% [-2, -1, 0, 1, 2].each do |offset| %>
-  <% cache ["series_index", current_page + offset] do %>
+  <% cache ["series_index", current_page + offset, params[:q], params[:tags]] do %>
     <% if offset == 0 %>
       <turbo-frame id="series">
         <div class="container py-5">

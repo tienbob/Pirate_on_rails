@@ -41,8 +41,11 @@ Rails.application.routes.draw do
   resources :tags
   get 'payments/upgrade', to: 'payments#upgrade', as: :upgrade_payment
   get 'payments/success', to: 'payments#success', as: :success_payments
+  get 'payments/cancel', to: 'payments#cancel', as: :cancel_payment
+  get 'payments/manage', to: 'payments#manage_subscription', as: :manage_subscription
+  post 'payments/cancel_subscription', to: 'payments#cancel_subscription', as: :cancel_subscription
   resources :users, only: [:index, :new, :create, :show, :edit, :update, :destroy]
-  resources :payments, only: [:index]
+  resources :payments, only: [:index, :show, :new, :create]
   post 'payments/create_checkout_session', to: 'payments#create_checkout_session', as: :create_checkout_session_payments
   post 'payments/create_portal_session', to: 'payments#create_portal_session', as: :create_portal_session_payments
   post 'payments/webhook', to: 'payments#webhook', as: :webhook_payments  

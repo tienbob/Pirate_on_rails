@@ -17,7 +17,15 @@ class SeriesController < ApplicationController
   def index
     page = (params[:page] || 1).to_i
     per_page = 8
-    if params[:q].present? || params[:tags].present?
+    if params[:search_type] == 'episode' && (params[:q].present? || params[:tags].present?)
+      movies = search_movies(params)
+      @movies = policy_scope(movies).page(page).per(per_page)
+      @series = [] # Prevent nil error in _results.html.erb
+      respond_to do |format|
+        format.html { render :index }
+        format.turbo_stream { render partial: 'movies/results', locals: { movies: @movies } }
+      end
+    elsif params[:q].present? || params[:tags].present?
       @series = policy_scope(search_series(params))
       @series = @series.order(updated_at: :desc)
       @series = Kaminari.paginate_array(@series, total_count: @series.size).page(page).per(per_page)

@@ -1,12 +1,19 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Checkout canceled</title>
-
-</head>
-<body>
-  <section>
-    <p>Picked the wrong subscription? Shop around then come back to pay!</p>
-  </section>
-</body>
-</html>
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-lg rounded-4 bg-dark text-light">
+        <div class="card-body p-5 text-center">
+          <div class="mb-4">
+            <i class="fas fa-times-circle fa-3x text-danger" style="color:#ff6b6b;"></i>
+          </div>
+          <h2 class="fw-bold mb-3 text-warning">Payment Cancelled</h2>
+          <p class="lead mb-4">Your payment was cancelled. You can try again anytime to upgrade to <span class="fw-bold text-info">Pro</span>.</p>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+            <a href="<%= upgrade_payment_path %>" class="btn btn-gradient me-md-2">Try Again</a>
+            <a href="<%= series_index_path %>" class="btn btn-outline-light">Continue Browsing</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

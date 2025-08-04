@@ -4,6 +4,14 @@
       <div class="card shadow-lg rounded-4 p-4">
         <h2 class="mb-4 text-center">Upgrade to Pro</h2>
         <p class="text-center mb-4">Unlock all features by upgrading your account to Pro!</p>
+        
+        <% if flash[:alert] %>
+          <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <%= flash[:alert] %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        <% end %>
+        
         <form method="post" action="<%= create_checkout_session_payments_path %>" data-turbo="false">
           <div class="mb-3">
             <label class="form-label">Amount</label>
@@ -13,17 +21,32 @@
           <input type="hidden" name="price" value="<%= ENV['STRIPE_PRICE_ID'] %>">
           <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
           <div class="d-grid gap-2">
-            <button class="btn btn-gradient btn-lg">Pay & Upgrade</button>
+            <button type="submit" class="btn btn-gradient btn-lg" id="checkout-button">
+              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              Pay & Upgrade
+            </button>
           </div>
         </form>
         <div class="mt-3 text-center">
-          <%= link_to 'Back', movies_path, class: 'btn btn-secondary' %>
+          <%= link_to 'Back', series_index_path, class: 'btn btn-secondary' %>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<script src="https://js.stripe.com/v3/"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector('form');
+  const button = document.getElementById('checkout-button');
+  const spinner = button.querySelector('.spinner-border');
+  
+  form.addEventListener('submit', function() {
+    button.disabled = true;
+    spinner.classList.remove('d-none');
+    button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...';
+  });
+});
+</script>
 
 
