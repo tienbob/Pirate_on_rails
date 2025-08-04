@@ -28,6 +28,16 @@ body.anime-bg {
   font-family: 'Mochiy Pop One', 'Segoe UI', 'Arial', sans-serif;
   color: #fff;
 }
+
+/* Tags specific backgrounds */
+body.bg-tags {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%),
+              url('https://images.unsplash.com/photo-1489599273718-e8d72ebdcded?ixlib=rb-4.0.3&auto=format&fit=crop&w=2069&q=80') center/cover no-repeat fixed;
+  min-height: 100vh;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+}
+
 .glass-card {
   background: rgba(255,255,255,0.15);
   border-radius: 1.5rem;
@@ -40,4 +50,49 @@ body.anime-bg {
   font-family: 'Mochiy Pop One', 'Segoe UI', 'Arial', sans-serif;
   font-size: 2.2rem;
   letter-spacing: 2px;
+}
+
+/* Modern film website styles for tags */
+.tags-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.tag-card-modern {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+.tag-card-modern:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.tag-card-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 0.75rem;
+}
+
+.tag-card-description {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.tag-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }

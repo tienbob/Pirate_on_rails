@@ -1,52 +1,64 @@
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-      <div class="card shadow-lg rounded-4 p-4">
-        <h2 class="mb-4 text-center">Series Form</h2>
-        <%= form_with(model: series, local: true, html: { class: 'needs-validation' }) do |form| %>
-          <% if series.errors.any? %>
-            <div class="alert alert-danger">
-              <h4><%= pluralize(series.errors.count, "error") %> prohibited this series from being saved:</h4>
-              <ul>
-              <% series.errors.full_messages.each do |message| %>
-                <li><%= message %></li>
-              <% end %>
-              </ul>
-            </div>
-          <% end %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag 'cinema_series_form', media: 'all' %>
+<% end %>
 
-          <div class="mb-3">
-            <%= form.label :title, class: 'form-label' %>
-            <%= form.text_field :title, class: 'form-control', required: true %>
-          </div>
-          <div class="mb-3">
-            <%= form.label :description, class: 'form-label' %>
-            <%= form.text_area :description, class: 'form-control', rows: 3, required: true %>
-          </div>
+<%= form_with(model: series, local: true) do |form| %>
+  <div class="form-group-series">
+    <%= form.label :title, class: 'form-label-series' do %>
+      <i class="fas fa-tv me-2"></i>Series Title
+    <% end %>
+    <%= form.text_field :title,
+        class: 'form-control-series',
+        placeholder: 'Enter the series title...',
+        required: true %>
+  </div>
 
-          <div class="mb-3">
-            <%= form.label :img, class: 'form-label' %>
-            <%= form.file_field :img, class: 'form-control', direct_upload: true %>
-          </div>
+  <div class="form-group-series">
+    <%= form.label :description, class: 'form-label-series' do %>
+      <i class="fas fa-align-left me-2"></i>Description
+    <% end %>
+    <%= form.text_area :description,
+        class: 'form-control-series form-textarea-series',
+        placeholder: 'Describe the series plot, themes, and what makes it special...',
+        required: true %>
+  </div>
 
-          <div class="mb-3">
-            <%= form.label :tags, class: 'form-label text-white' %>
-            <div class="d-flex flex-wrap gap-2" data-controller="series-form" data-series-form-target="tagSelect selectedTags">
-              <% Tag.all.each do |tag| %>
-                <label class="btn btn-outline-info mb-2 tag-option">
-                  <%= check_box_tag "series[tag_ids][]", tag.id, series.tags.include?(tag), id: "tag_#{tag.id}", class: "btn-check" %>
-                  <span><%= tag.name %></span>
-                </label>
-              <% end %>
-              <input type="hidden" data-series-form-target="selectedTags" />
-            </div>
-          </div>
-
-          <div class="d-grid gap-2">
-            <%= form.submit class: 'btn btn-primary btn-lg' %>
-          </div>
-        <% end %>
+  <div class="form-group-series">
+    <%= form.label :img, class: 'form-label-series' do %>
+      <i class="fas fa-image me-2"></i>Series Poster Image
+    <% end %>
+    <div class="file-input-container-series">
+      <%= form.file_field :img,
+          accept: "image/*",
+          class: 'form-control',
+          direct_upload: true %>
+      <div class="file-input-text-series">
+        <i class="fas fa-cloud-upload-alt mb-2" style="font-size: 2rem; color: #64748b;"></i>
+        <p>Click to upload poster image or drag and drop</p>
+        <p style="font-size: 0.75rem;">Supported formats: JPG, PNG, WebP</p>
       </div>
     </div>
   </div>
-</div>
+
+  <div class="form-group-series">
+    <%= form.label :tags, class: 'form-label-series' do %>
+      <i class="fas fa-tags me-2"></i>Genres & Tags
+    <% end %>
+    <div class="tags-grid-series" data-controller="series-form" data-series-form-target="tagSelect selectedTags">
+      <% Tag.all.each do |tag| %>
+        <div class="tag-checkbox-series">
+          <%= check_box_tag "series[tag_ids][]",
+              tag.id,
+              series.tags.include?(tag),
+              id: "tag_#{tag.id}" %>
+          <label for="tag_<%= tag.id %>"><%= tag.name %></label>
+        </div>
+      <% end %>
+      <input type="hidden" data-series-form-target="selectedTags" />
+    </div>
+  </div>
+
+  <div class="form-group-series">
+    <%= form.submit series.persisted? ? 'Update Series' : 'Create Series', class: 'submit-button-series' %>
+  </div>
+<% end %>

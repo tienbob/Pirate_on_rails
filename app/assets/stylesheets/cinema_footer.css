@@ -1,0 +1,99 @@
+/* --- Cinema Footer Styles --- */
+.cinema-footer {
+  background: linear-gradient(135deg, rgba(6, 13, 30, 0.98) 0%, rgba(17, 24, 45, 0.95) 25%, rgba(30, 58, 138, 0.92) 75%, rgba(59, 130, 246, 0.9) 100%);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(59, 130, 246, 0.3);
+  color: #e2e8f0;
+  padding: 2rem 0;
+  margin-top: auto;
+  box-shadow: 0 -4px 20px rgba(59, 130, 246, 0.2), 0 -8px 40px rgba(0, 0, 0, 0.4);
+}
+.cinema-footer-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.cinema-footer-icon {
+  width: 35px;
+  height: 35px;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(96, 165, 250, 0.4), 0 2px 4px rgba(59, 130, 246, 0.6);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+.cinema-footer-title {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+.cinema-footer-copyright {
+  font-family: 'Inter', sans-serif;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+.cinema-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.cinema-footer-link {
+  color: #e2e8f0;
+  text-decoration: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+.cinema-footer-link:hover {
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(59, 130, 246, 0.3) 100%);
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.2);
+}
+.cinema-footer-tech {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.tech-badge {
+  background: linear-gradient(135deg, rgba(71, 85, 105, 0.8) 0%, rgba(51, 65, 85, 0.9) 100%);
+  color: #f1f5f9;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  box-shadow: 0 2px 4px rgba(96, 165, 250, 0.1);
+}
+@media (max-width: 768px) {
+  .cinema-footer {
+    padding: 1.5rem 0;
+  }
+  .cinema-footer-brand {
+    margin-bottom: 0.75rem;
+  }
+  .cinema-footer-title {
+    font-size: 1.125rem;
+  }
+  .cinema-footer-links {
+    gap: 1rem;
+  }
+  .cinema-footer-tech {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+}

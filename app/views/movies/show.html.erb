@@ -1,53 +1,82 @@
-<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet">
-<script>
-  document.body.classList.add('anime-bg');
-</script>
+<% content_for :head do %>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <%= stylesheet_link_tag 'cinema_movie_show', media: 'all' %>
+<% end %>
 
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-      <div class="glass-card p-5 mb-4">
-        <div class="d-flex flex-column flex-md-row align-items-center mb-4">
-          <% if @movie.video_file.attached? %>
-            <video class="rounded-3 shadow-sm me-md-4 mb-3 mb-md-0" width="100%" height="auto" controls>
-              <source src="<%= url_for(@movie.video_file) %>" type="video/mp4">
-              Your browser does not support the video tag.
-            </video>
-          <% else %>
-            <div class="bg-secondary text-white rounded-3 d-flex align-items-center justify-content-center me-md-4 mb-3 mb-md-0" style="width:100%;height:250px;">
-              <span>No video</span>
+<div class="movie-hero-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div class="movie-showcase-card p-5">
+          <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+              <div class="movie-video-container">
+                <% if @movie.video_file.attached? %>
+                  <%= video_tag url_for(@movie.video_file), 
+                      controls: true, 
+                      class: "movie-video", 
+                      preload: "metadata" %>
+                <% else %>
+                  <div class="movie-placeholder">
+                    <i class="fas fa-film me-2"></i>
+                    No video available
+                  </div>
+                <% end %>
+              </div>
             </div>
-          <% end %>
-          <div class="flex-grow-1">
-            <h2 class="anime-title mb-1"><%= @movie.title %></h2>
-            <p class="text-white-50 mb-2" style="font-family:'Mochiy Pop One',sans-serif;">
-              <%= @movie.release_date.strftime('%d/%m/%Y') if @movie.release_date %>
-            </p>
-            <% if @movie.is_pro %>
-              <span class="anime-badge">Pro</span>
-            <% else %>
-              <span class="anime-badge" style="background:linear-gradient(90deg,#43e97b 0%,#38f9d7 100%);">Free</span>
-            <% end %>
+            
+            <div class="col-lg-6">
+              <h1 class="movie-title"><%= @movie.title %></h1>
+              <div class="movie-meta">
+                <% if @movie.release_date %>
+                  <i class="fas fa-calendar-alt me-2"></i>
+                  Released <%= @movie.release_date.strftime('%B %d, %Y') %>
+                <% end %>
+              </div>
+              
+              <% if @movie.is_pro %>
+                <div class="movie-badge pro">
+                  <i class="fas fa-crown me-2"></i>Pro Content
+                </div>
+              <% else %>
+                <div class="movie-badge free">
+                  <i class="fas fa-unlock me-2"></i>Free to Watch
+                </div>
+              <% end %>
+              
+              <p class="movie-description"><%= @movie.description %></p>
+              
+              <% if @movie.tags.any? %>
+                <div class="movie-tags">
+                  <span class="movie-tags-label">
+                    <i class="fas fa-tags me-2"></i>Genres
+                  </span>
+                  <div>
+                    <% @movie.tags.each do |tag| %>
+                      <span class="movie-tag"><%= tag.name %></span>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+              
+              <div class="movie-actions">
+                <% if @movie.series %>
+                  <%= link_to series_path(@movie.series), class: 'movie-btn movie-btn-secondary' do %>
+                    <i class="fas fa-arrow-left me-2"></i>Back to Series
+                  <% end %>
+                <% else %>
+                  <%= link_to series_index_path, class: 'movie-btn movie-btn-secondary' do %>
+                    <i class="fas fa-arrow-left me-2"></i>Back to Series List
+                  <% end %>
+                <% end %>
+                <% if current_user&.admin? %>
+                  <%= link_to edit_movie_path(@movie), class: 'movie-btn movie-btn-primary' do %>
+                    <i class="fas fa-edit me-2"></i>Edit Movie
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
           </div>
-        </div>
-        <p class="fs-5 text-white" style="font-family:'Mochiy Pop One',sans-serif;"><%= @movie.description %></p>
-        <% if @movie.tags.any? %>
-          <div class="mb-3">
-            <strong class="text-white">Tags:</strong>
-            <% @movie.tags.each do |tag| %>
-              <span class="badge tag-badge me-2"><%= tag.name %></span>
-            <% end %>
-          </div>
-        <% end %>
-        <div class="mt-4">
-          <% if @movie.series %>
-            <%= link_to 'Back to Series', series_path(@movie.series), class: 'btn btn-outline-light' %>
-          <% else %>
-            <%= link_to 'Back to Series List', series_index_path, class: 'btn btn-outline-light' %>
-          <% end %>
-          <% if current_user&.admin? %>
-            <%= link_to 'Edit', edit_movie_path(@movie), class: 'btn btn-primary ms-2' %>
-          <% end %>
         </div>
       </div>
     </div>

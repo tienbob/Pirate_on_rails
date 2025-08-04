@@ -1,22 +1,235 @@
 
+<% content_for :head do %>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .film-hero-section {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%),
+                  url('https://images.unsplash.com/photo-1489599273718-e8d72ebdcded?ixlib=rb-4.0.3&auto=format&fit=crop&w=2069&q=80') center/cover;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .film-hero-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+      pointer-events: none;
+    }
+    
+    .tag-showcase-card {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .tag-showcase-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.5), transparent);
+    }
+    
+    .tag-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 3.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      margin-bottom: 2rem;
+      line-height: 1.2;
+    }
+    
+    .tag-subtitle {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.25rem;
+      color: #94a3b8;
+      text-align: center;
+      margin-bottom: 3rem;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+    }
+    
+    .tag-description {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.125rem;
+      line-height: 1.8;
+      color: #e2e8f0;
+      background: rgba(30, 41, 59, 0.5);
+      padding: 2rem;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      margin-bottom: 3rem;
+    }
+    
+    .tag-description strong {
+      color: #f1f5f9;
+      font-weight: 600;
+    }
+    
+    .film-btn {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      padding: 12px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border: none;
+      font-size: 0.875rem;
+      letter-spacing: 0.025em;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .film-btn-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: white;
+      box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    }
+    
+    .film-btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+      color: white;
+    }
+    
+    .film-btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+    }
+    
+    .film-btn-danger:hover {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4);
+      color: white;
+    }
+    
+    .film-btn-secondary {
+      background: rgba(71, 85, 105, 0.5);
+      color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    
+    .film-btn-secondary:hover {
+      background: rgba(71, 85, 105, 0.8);
+      color: #f1f5f9;
+      transform: translateY(-2px);
+      border-color: rgba(148, 163, 184, 0.3);
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .floating-elements {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    
+    .floating-elements::before,
+    .floating-elements::after {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+      animation: float 20s infinite ease-in-out;
+    }
+    
+    .floating-elements::before {
+      top: -150px;
+      right: -150px;
+      animation-delay: 0s;
+    }
+    
+    .floating-elements::after {
+      bottom: -150px;
+      left: -150px;
+      animation-delay: 10s;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(180deg); }
+    }
+    
+    @media (max-width: 768px) {
+      .tag-title {
+        font-size: 2.5rem;
+      }
+      
+      .tag-subtitle {
+        font-size: 1rem;
+      }
+      
+      .tag-description {
+        padding: 1.5rem;
+        font-size: 1rem;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .film-btn {
+        width: 100%;
+        max-width: 300px;
+      }
+    }
+  </style>
+<% end %>
 
-<link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap" rel="stylesheet">
-
-<script>
-  document.body.classList.add('bg-tags');
-</script>
-
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-8">
-      <div class="card p-4">
-        <h1 class="text-center text-white mb-4"><%= @tag.name %></h1>
-        <p class="text-white"><strong>Description:</strong> <%= @tag.description %></p>
-        <% if current_user&.admin? %>
-          <%= link_to 'Edit', edit_tag_path(@tag), class: 'btn btn-primary me-2' %>
-          <%= link_to 'Delete', tag_path(@tag), method: :delete, data: { confirm: 'Are you sure?' }, class: 'btn btn-danger' %>
-        <% end %>
-        <%= link_to 'Back to Tags', tags_path, class: 'btn btn-secondary mt-3' %>
+<div class="film-hero-section">
+  <div class="floating-elements"></div>
+  
+  <div class="container position-relative" style="z-index: 2;">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-xl-6">
+        <div class="tag-showcase-card p-5">
+          <h1 class="tag-title"><%= @tag.name %></h1>
+          <p class="tag-subtitle">Genre • Category • Style</p>
+          
+          <div class="tag-description">
+            <strong>Description:</strong> <%= @tag.description || "This genre represents a unique category of films that captivates audiences with its distinctive storytelling approach and thematic elements." %>
+          </div>
+          
+          <div class="action-buttons">
+            <% if current_user&.admin? %>
+              <%= link_to 'Edit Tag', edit_tag_path(@tag), class: 'film-btn film-btn-primary' %>
+              <%= link_to 'Delete Tag', tag_path(@tag), method: :delete, 
+                  data: { confirm: 'Are you sure you want to delete this tag?' }, 
+                  class: 'film-btn film-btn-danger' %>
+            <% end %>
+            <%= link_to 'Back to Tags', tags_path, class: 'film-btn film-btn-secondary' %>
+          </div>
+        </div>
       </div>
     </div>
   </div>

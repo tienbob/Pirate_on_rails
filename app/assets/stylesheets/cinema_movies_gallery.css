@@ -1,0 +1,124 @@
+/* cinema_movies_gallery.css
+   Styles for the movies gallery (externalized from index.html.erb)
+   Cinematic theme, responsive, glass morphism, Inter font, Playfair Display, gradients, etc.
+*/
+
+.movies-gallery-section {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%),
+              url('https://images.unsplash.com/photo-1489599273718-e8d72ebdcded?ixlib=rb-4.0.3&auto=format&fit=crop&w=2069&q=80') center/cover;
+  min-height: 100vh;
+  padding: 4rem 0;
+  position: relative;
+}
+
+.gallery-header {
+  text-align: center;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%);
+  color: #64748b;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+}
+
+.movie-card-body {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.movie-card-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.movie-card-date {
+  font-family: 'Inter', sans-serif;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.movie-card-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.movie-card-badge.pro {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.movie-card-badge.free {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.movie-card-description {
+  font-family: 'Inter', sans-serif;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  flex: 1;
+  margin-bottom: 1rem;
+}
+
+.movie-card-tags {
+  margin-bottom: 1rem;
+}
+
+.movie-card-tag {
+  display: inline-block;
+  background: rgba(59, 130, 246, 0.1);
+  color: #93c5fd;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  margin: 0.125rem;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.movie-card-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  align-self: flex-start;
+}
+
+.movie-card-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-1px);
+  color: white;
+  text-decoration: none;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 3rem;
+}
+
+@media (max-width: 768px) {
+  .gallery-title {
+    font-size: 2.5rem;
+  }
+  .gallery-subtitle {
+    font-size: 1rem;
+  }
+}

@@ -1,33 +1,54 @@
+<% content_for :head do %>
+  <%= stylesheet_link_tag 'cinema_series_results', media: 'all' %>
+<% end %>
+
 <div class="row g-4">
-    <% @series.each do |series| %>
-      <div class="col-md-6 col-lg-4">
-        <div class="card border-0 shadow-lg rounded-4 h-100">
-          <% img_style = 'height: 250px; object-fit: cover; width: 100%;' %>
+  <% @series.each do |series| %>
+    <div class="col-md-6 col-lg-4">
+      <div class="series-card">
+        <div class="series-card-image">
           <% if series.img.attached? %>
-            <%= image_tag url_for(series.img), class: "card-img-top rounded-top-4", alt: series.title, loading: "lazy", style: img_style %>
+            <%= image_tag url_for(series.img), 
+                alt: series.title, 
+                loading: "lazy" %>
           <% elsif series.img.is_a?(String) && series.img.present? %>
-            <%= image_tag series.img, class: "card-img-top rounded-top-4", alt: series.title, loading: "lazy", style: img_style %>
+            <%= image_tag series.img, 
+                alt: series.title, 
+                loading: "lazy" %>
           <% else %>
-            <%= image_tag 'series/default.JPG', class: "card-img-top rounded-top-4", alt: 'Default series image', loading: "lazy", style: img_style %>
+            <%= image_tag 'series/default.JPG', 
+                alt: 'Default series image', 
+                loading: "lazy" %>
           <% end %>
-          <div class="card-body d-flex flex-column">
-            <h5 class="card-title fw-bold"><%= series.title %></h5>
-            <p class="card-text flex-grow-1"><%= truncate(series.description, length: 80) %></p>
-            <% if series.tags.any? %>
-              <div class="mb-2">
-                <% series.tags.limit(3).each do |tag| %>
-                  <span class="badge bg-warning text-dark me-1"><%= tag.name %></span>
-                <% end %>
-              </div>
-            <% end %>
-            <%= link_to 'View', series_path(series), class: 'btn btn-gradient mt-2', data: { turbo: false } %>
-          </div>
+        </div>
+        
+        <div class="series-card-body">
+          <h5 class="series-card-title"><%= series.title %></h5>
+          <p class="series-card-description">
+            <%= truncate(series.description, length: 120) %>
+          </p>
+          
+          <% if series.tags.any? %>
+            <div class="series-card-tags">
+              <% series.tags.limit(3).each do |tag| %>
+                <span class="series-card-tag"><%= tag.name %></span>
+              <% end %>
+            </div>
+          <% end %>
+          
+          <%= link_to series_path(series), 
+              class: 'series-card-btn', 
+              data: { turbo: false } do %>
+            <i class="fas fa-tv me-2"></i>Explore Series
+          <% end %>
         </div>
       </div>
-    <% end %>
-  </div>
-  <% if @series.respond_to?(:total_pages) %>
-    <div class="d-flex justify-content-center mt-4">
-      <%= paginate @series %>
     </div>
   <% end %>
+</div>
+
+<% if @series.respond_to?(:total_pages) %>
+  <div class="pagination-container">
+    <%= paginate @series %>
+  </div>
+<% end %>

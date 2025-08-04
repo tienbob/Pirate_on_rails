@@ -1,15 +1,25 @@
-<footer class="bg-dark text-white py-4 mt-auto">
+
+<footer class="cinema-footer">
   <div class="container text-center">
-    <div class="mb-2">
-      <%= image_tag "animate.png", style: "max-height: 2.5rem; height: 2.5rem; width: auto; vertical-align: middle;" %>
-      <span class="fw-bold">Pirate On Rails</span>
+    <div class="cinema-footer-brand">
+      <%= image_tag "animate.png", class: "cinema-footer-icon", style: "width:35px;height:35px;object-fit:contain;" %>
     </div>
-    <div class="mb-2">
+    
+    <div class="cinema-footer-copyright">
       &copy; <%= Time.current.year %> Pirate On Rails. All rights reserved.
     </div>
-    <div>
-      <a href="https://github.com/your-repo" class="text-white-50 text-decoration-none me-2" target="_blank">GitHub</a>
-      <a href="/about" class="text-white-50 text-decoration-none">About</a>
+    
+    <div class="cinema-footer-links">
+      <a href="https://github.com/tienbob/Pirate_on_rails" class="cinema-footer-link" target="_blank">
+        <i class="fab fa-github me-1"></i>GitHub
+      </a>
+      <a href="/about" class="cinema-footer-link">
+        <i class="fas fa-info-circle me-1"></i>About
+      </a>
+      <a href="/contact" class="cinema-footer-link">
+        <i class="fas fa-envelope me-1"></i>Contact
+      </a>
     </div>
+    
   </div>
 </footer>

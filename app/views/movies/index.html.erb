@@ -1,61 +1,92 @@
-<script>
-  document.body.classList.add('bg-movie-index');
-</script>
-
-<div class="container py-5">
-  <h1 class="text-center text-white mb-5">Movie Gallery</h1>
-
-  <!-- Turbo Frame: Only the search form will be replaced when searching -->
-  <turbo-frame id="movie_search_form">
-    <%= render 'search_form' %>
-  </turbo-frame>
+<% content_for :head do %>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <%= stylesheet_link_tag 'cinema_movies_gallery', media: 'all' %>
+  <% end %>
 
 
+<div class="movies-gallery-section">
+  <div class="container">
+    <div class="gallery-header">
+      <h1 class="gallery-title">Movie Gallery</h1>
+      <p class="gallery-subtitle">Discover premium content and entertainment</p>
+    </div>
 
-  <!-- Turbo Frame: Only the movie list will be replaced on search or Turbo Stream update -->
-  <turbo-frame id="movies">
-    <div class="row g-4">
-      <% @movies.each do |movie| %>
-        <div class="col-md-6 col-lg-4">
-          <div class="card border-0 shadow-lg rounded-4 h-100">
-            <% if movie.video_file.attached? %>
-              <%= image_tag movie.video_file.preview(resize_to_limit: [320, 180]), class: "fixed-img card-img-top rounded-top-4", alt: "#{movie.title} preview", loading: "lazy" %>
-            <% else %>
-              <div class="video-placeholder rounded-top-4">
-                <span>No image available</span>
+    <!-- Turbo Frame: Only the search form will be replaced when searching -->
+    <turbo-frame id="movie_search_form">
+      <%= render 'search_form' %>
+    </turbo-frame>
+
+    <!-- Turbo Frame: Only the movie list will be replaced on search or Turbo Stream update -->
+    <turbo-frame id="movies">
+      <div class="row g-4">
+        <% @movies.each do |movie| %>
+          <div class="col-md-6 col-lg-4">
+            <div class="movie-card">
+              <div class="movie-card-image">
+                <% if movie.video_file.attached? %>
+                  <%= image_tag movie.video_file.preview(resize_to_limit: [320, 200]), 
+                      alt: "#{movie.title} preview", 
+                      loading: "lazy" %>
+                <% else %>
+                  <div class="movie-placeholder">
+                    <i class="fas fa-film me-2"></i>
+                    No image available
+                  </div>
+                <% end %>
               </div>
-            <% end %>
-            <div class="card-body d-flex flex-column">
-              <h5 class="card-title fw-bold"><%= movie.title %></h5>
-              <p class="card-text mb-2"><%= movie.release_date.strftime('%B %d, %Y') if movie.release_date %></p>
-              <% if movie.is_pro %>
-                <span class="badge bg-gradient text-white mb-2">Pro</span>
-              <% else %>
-                <span class="badge bg-success mb-2">Free</span>
-              <% end %>
-              <p class="card-text flex-grow-1"><%= truncate(movie.description, length: 80) %></p>
-              <% if movie.tags.any? %>
-                <div class="mb-2">
-                  <% movie.tags.limit(3).each do |tag| %>
-                    <span class="badge bg-warning text-dark me-1"><%= tag.name %></span>
+              
+              <div class="movie-card-body">
+                <h5 class="movie-card-title"><%= movie.title %></h5>
+                <p class="movie-card-date">
+                  <% if movie.release_date %>
+                    <i class="fas fa-calendar-alt me-1"></i>
+                    <%= movie.release_date.strftime('%B %d, %Y') %>
                   <% end %>
-                </div>
-              <% end %>
-              <%= link_to 'View', movie_path(movie), class: 'btn btn-gradient mt-2', data: { turbo: false } %>
+                </p>
+                
+                <% if movie.is_pro %>
+                  <span class="movie-card-badge pro">
+                    <i class="fas fa-crown me-1"></i>Pro
+                  </span>
+                <% else %>
+                  <span class="movie-card-badge free">
+                    <i class="fas fa-unlock me-1"></i>Free
+                  </span>
+                <% end %>
+                
+                <p class="movie-card-description">
+                  <%= truncate(movie.description, length: 100) %>
+                </p>
+                
+                <% if movie.tags.any? %>
+                  <div class="movie-card-tags">
+                    <% movie.tags.limit(3).each do |tag| %>
+                      <span class="movie-card-tag"><%= tag.name %></span>
+                    <% end %>
+                  </div>
+                <% end %>
+                
+                <%= link_to movie_path(movie), 
+                    class: 'movie-card-btn', 
+                    data: { turbo: false } do %>
+                  <i class="fas fa-play me-2"></i>Watch Now
+                <% end %>
+              </div>
             </div>
           </div>
-        </div>
-      <% end %>
-    </div>
-    <div class="d-flex justify-content-center mt-4">
-      <%= paginate @movies %>
-    </div>
-  </turbo-frame>
+        <% end %>
+      </div>
+      
+      <div class="pagination-container">
+        <%= paginate @movies %>
+      </div>
+    </turbo-frame>
 
-  <!--
-    Hotwire integration:
-    - Turbo Frames above allow partial page updates for search and results.
-    - Turbo Streams can be used to update the movie list in real-time (e.g., when a new movie is added).
-    - The Stimulus controller (movie_search_form.js) handles client-side interactivity for the form.
-  -->
+    <!--
+      Hotwire integration:
+      - Turbo Frames above allow partial page updates for search and results.
+      - Turbo Streams can be used to update the movie list in real-time (e.g., when a new movie is added).
+      - The Stimulus controller (movie_search_form.js) handles client-side interactivity for the form.
+    -->
+  </div>
 </div>

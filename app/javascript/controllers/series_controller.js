@@ -18,34 +18,39 @@ export default class extends Controller {
     // When used with Turbo Frames, submitting the form will only update the results frame.
     let selected = [];
     if (this.hasTagSelectTarget && this.hasSelectedTagsTarget) {
-      this.tagSelectTarget.querySelectorAll('.tag-option').forEach(tagEl => {
+      // Initialize selected from hidden input value
+      const initial = this.selectedTagsTarget.value;
+      if (initial) {
+        selected = initial.split(',').map(t => t.trim()).filter(t => t.length > 0);
+      }
+      this.tagSelectTarget.querySelectorAll('.tag-option-series').forEach(tagEl => {
+        const tag = tagEl.getAttribute('data-tag');
+        // Set initial highlight
+        if (selected.includes(tag)) {
+          tagEl.classList.add('selected');
+        } else {
+          tagEl.classList.remove('selected');
+        }
         tagEl.addEventListener('click', () => {
-          const tag = tagEl.getAttribute('data-tag');
           if (selected.includes(tag)) {
             selected = selected.filter(t => t !== tag);
-            tagEl.classList.remove('bg-primary');
-            tagEl.classList.add('bg-secondary');
+            tagEl.classList.remove('selected');
           } else {
             selected.push(tag);
-            tagEl.classList.remove('bg-secondary');
-            tagEl.classList.add('bg-primary');
+            tagEl.classList.add('selected');
           }
           this.selectedTagsTarget.value = selected.join(',');
         });
       });
-      // On form submit, add hidden inputs for each selected tag.
-      // Turbo will submit the form via AJAX and update the results frame.
-      document.getElementById('series-search-form').addEventListener('submit', e => {
-        document.querySelectorAll('input[name="tags[]"]').forEach(el => el.remove());
-        selected.forEach(tag => {
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = 'tags[]';
-          input.value = tag;
-          e.target.appendChild(input);
+      // On form submit, update hidden input value
+      const form = document.getElementById('series-search-form');
+      if (form) {
+        form.addEventListener('submit', e => {
+          this.selectedTagsTarget.value = selected.join(',');
         });
-        // No extra JS needed; only series search is allowed
-      });
+      } else {
+        console.warn('[series-controller] series-search-form not found!');
+      }
     }
   }
 }

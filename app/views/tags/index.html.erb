@@ -1,37 +1,286 @@
-<div class="container py-5">
-  <div class="card p-4">
-    <h1 class="text-center text-white mb-4">Tags</h1>
-    <table class="table table-hover table-bordered rounded-4 overflow-hidden payments-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Description</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @tags.each do |tag| %>
-          <tr>
-            <td><%= link_to tag.name, tag_path(tag) %></td>
-            <td><%= tag.description %></td>
-            <td>
-              <% if current_user&.admin? %>
-                <%= link_to 'Edit', edit_tag_path(tag), class: 'btn btn-sm btn-primary' %>
-                <%= link_to 'Delete', tag_path(tag), method: :delete, data: { confirm: 'Are you sure?' }, class: 'btn btn-sm btn-danger' %>
+<% content_for :head do %>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .tags-admin-section {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%),
+                  url('https://images.unsplash.com/photo-1489599273718-e8d72ebdcded?ixlib=rb-4.0.3&auto=format&fit=crop&w=2069&q=80') center/cover;
+      min-height: 100vh;
+      padding: 4rem 0;
+      position: relative;
+    }
+    
+    .admin-dashboard-card {
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+    
+    .admin-header {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+      padding: 2rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    
+    .admin-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-align: center;
+      margin: 0;
+    }
+    
+    .admin-subtitle {
+      font-family: 'Inter', sans-serif;
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 0.5rem;
+      font-size: 1rem;
+    }
+    
+    .tags-grid {
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .tag-admin-card {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .tag-admin-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.6), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+    
+    .tag-admin-card:hover::before {
+      transform: translateX(0);
+    }
+    
+    .tag-admin-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      border-color: rgba(59, 130, 246, 0.3);
+      background: rgba(30, 41, 59, 0.8);
+    }
+    
+    .tag-name {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 0.75rem;
+      text-decoration: none;
+    }
+    
+    .tag-name:hover {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+    
+    .tag-description {
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+      color: #94a3b8;
+      line-height: 1.6;
+      margin-bottom: 1.25rem;
+      min-height: 2.4em;
+    }
+    
+    .tag-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+    
+    .admin-btn {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.75rem;
+      transition: all 0.3s ease;
+      border: none;
+    }
+    
+    .admin-btn-edit {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      color: white;
+    }
+    
+    .admin-btn-edit:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      transform: translateY(-1px);
+      color: white;
+    }
+    
+    .admin-btn-delete {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+    
+    .admin-btn-delete:hover {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      transform: translateY(-1px);
+      color: white;
+    }
+    
+    .admin-footer {
+      padding: 2rem;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+      background: rgba(15, 23, 42, 0.5);
+    }
+    
+    .admin-footer-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .admin-btn-large {
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      padding: 12px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: none;
+    }
+    
+    .admin-btn-secondary {
+      background: rgba(71, 85, 105, 0.6);
+      color: #e2e8f0;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    
+    .admin-btn-secondary:hover {
+      background: rgba(71, 85, 105, 0.9);
+      color: #f1f5f9;
+      transform: translateY(-2px);
+    }
+    
+    .admin-btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+    
+    .admin-btn-success:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      transform: translateY(-2px);
+      color: white;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #94a3b8;
+    }
+    
+    .empty-state h3 {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+      color: #e2e8f0;
+    }
+    
+    @media (max-width: 768px) {
+      .tags-grid {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+      }
+      
+      .admin-footer-actions {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .admin-btn-large {
+        width: 100%;
+        max-width: 300px;
+      }
+    }
+  </style>
+<% end %>
+
+<script>
+  document.body.classList.add('bg-tags');
+</script>
+
+<div class="tags-admin-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-xl-10">
+        <div class="admin-dashboard-card">
+          <div class="admin-header">
+            <h1 class="admin-title">Tags Management</h1>
+            <p class="admin-subtitle">Admin Dashboard • Genre & Category Control</p>
+          </div>
+          
+          <% if @tags.any? %>
+            <div class="tags-grid">
+              <% @tags.each do |tag| %>
+                <div class="tag-admin-card">
+                  <%= link_to tag.name, tag_path(tag), class: 'tag-name d-block' %>
+                  <div class="tag-description">
+                    <%= tag.description.present? ? truncate(tag.description, length: 100) : "No description available" %>
+                  </div>
+                  <div class="tag-actions">
+                    <% if current_user&.admin? %>
+                      <%= link_to 'Edit', edit_tag_path(tag), class: 'admin-btn admin-btn-edit' %>
+                      <%= link_to 'Delete', tag_path(tag), method: :delete, 
+                          data: { confirm: 'Are you sure you want to delete this tag?' }, 
+                          class: 'admin-btn admin-btn-delete' %>
+                    <% end %>
+                  </div>
+                </div>
               <% end %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-    <div class="d-flex justify-content-between align-items-center mt-3">
-      <%= link_to 'Back to Movies', movies_path, class: 'btn btn-secondary' %>
-      <% if current_user&.admin? %>
-        <%= link_to 'New Tag', new_tag_path, class: 'btn btn-success' %>
-      <% end %>
-    </div>
-    <div class="d-flex justify-content-center mt-4">
-      <%= paginate @tags %>
+            </div>
+          <% else %>
+            <div class="empty-state">
+              <h3>No Tags Yet</h3>
+              <p>Start building your film categories by creating your first tag.</p>
+            </div>
+          <% end %>
+          
+          <div class="admin-footer">
+            <div class="admin-footer-actions">
+              <%= link_to 'Back to Movies', movies_path, class: 'admin-btn-large admin-btn-secondary' %>
+              <% if current_user&.admin? %>
+                <%= link_to 'Create New Tag', new_tag_path, class: 'admin-btn-large admin-btn-success' %>
+              <% end %>
+            </div>
+            
+            <% if respond_to?(:paginate) && @tags.respond_to?(:current_page) %>
+              <div class="d-flex justify-content-center mt-4">
+                <%= paginate @tags %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
