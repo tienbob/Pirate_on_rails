@@ -1,13 +1,13 @@
 module SeriesHelper
   # Efficiently get series image URL with caching and fallback
   def series_image_url(series)
-    cache_key = "series_#{series.id}_image_url_v7"
+    cache_key = "series_#{series.id}_image_url_v8"
     
-    Rails.cache.fetch(cache_key, expires_in: 4.hours) do
+    Rails.cache.fetch(cache_key, expires_in: 1.hour) do
       if series.img.attached?
         begin
-          # Use standard Rails blob URL which works reliably
-          rails_blob_url(series.img, expires_in: 2.hours)
+          # Use standard Rails blob URL without custom expiration
+          rails_blob_url(series.img)
         rescue => e
           Rails.logger.error "Error generating image URL for series #{series.id}: #{e.message}"
           asset_url('series/default.JPG')
