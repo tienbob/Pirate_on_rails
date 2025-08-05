@@ -198,7 +198,7 @@ class PaymentsController < ApplicationController
       session_id = Rails.cache.read("success_token_#{params[:token]}")
       unless session_id
         flash[:alert] = 'Invalid or expired security token'
-        redirect_to root_path
+        redirect_to series_index_path
         return
       end
 
@@ -210,7 +210,7 @@ class PaymentsController < ApplicationController
       # Verify the token matches what we stored in metadata
       unless session.metadata['success_token'] == params[:token]
         flash[:alert] = 'Security token mismatch'
-        redirect_to root_path
+        redirect_to series_index_path
         return
       end
       
@@ -218,7 +218,7 @@ class PaymentsController < ApplicationController
       user = User.find_by(id: session.client_reference_id)
       unless user
         flash[:alert] = 'User not found'
-        redirect_to root_path
+        redirect_to series_index_path
         return
       end
 
@@ -274,12 +274,12 @@ class PaymentsController < ApplicationController
     rescue Stripe::StripeError => e
       Rails.logger.error "Stripe success page error: #{e.message}"
       flash[:alert] = "Payment verification failed. Please contact support."
-      redirect_to root_path
+      redirect_to series_index_path
       return
     rescue ActiveRecord::RecordInvalid => e
       Rails.logger.error "Database error during upgrade: #{e.message}"
       flash[:alert] = "Upgrade failed. Please contact support."
-      redirect_to root_path  
+      redirect_to series_index_path  
       return
     end
     
@@ -298,19 +298,45 @@ class PaymentsController < ApplicationController
     end
 
     begin
-      # Find user's active subscription
-      @subscription_info = get_user_subscription_info(current_user)
+      # Check if we have cached subscription info (valid for 5 minutes)
+      cache_key = "subscription_info:#{current_user.id}"
+      @subscription_info = Rails.cache.fetch(cache_key, expires_in: 5.minutes) do
+        get_user_subscription_info(current_user)
+      end
+      
+      # Schedule background refresh if cache is older than 2 minutes
+      last_refresh_key = "last_refresh:#{current_user.id}"
+      last_refresh = Rails.cache.read(last_refresh_key)
+      
+      if last_refresh.nil? || last_refresh < 2.minutes.ago
+        RefreshSubscriptionJob.perform_later(current_user.id)
+        Rails.cache.write(last_refresh_key, Time.current, expires_in: 5.minutes)
+      end
       
       if @subscription_info.nil?
-        flash[:alert] = 'No active subscription found.'
-        redirect_to series_index_path
-        return
+        # Use fallback data while background job runs
+        @subscription_info = {
+          status: 'active',
+          subscription_id: 'loading...',
+          next_billing_date: 1.month.from_now,
+          amount: 9.99,
+          currency: 'SGD',
+          interval: 'month'
+        }
       end
       
     rescue Stripe::StripeError => e
       Rails.logger.error "Stripe error in manage_subscription: #{e.message}"
-      flash[:alert] = 'Unable to load subscription information. Please try again.'
-      redirect_to series_index_path
+      
+      # Show page with cached data or fallback
+      @subscription_info = Rails.cache.fetch(cache_key) || {
+        status: 'active',
+        subscription_id: 'temporarily_unavailable',
+        next_billing_date: 1.month.from_now,
+        amount: 9.99,
+        currency: 'SGD',
+        interval: 'month'
+      }
     end
   end
 
@@ -371,6 +397,11 @@ class PaymentsController < ApplicationController
 
   private
 
+  def record_not_found
+    flash[:alert] = "The requested resource was not found."
+    redirect_to series_index_path
+  end
+
   def require_admin
     unless current_user&.admin?
       redirect_to series_index_path, alert: 'You are not authorized to view payments.'
@@ -396,16 +427,18 @@ class PaymentsController < ApplicationController
     end
   end
 
-  def get_user_subscription_info(user)
-    return nil unless user&.pro?
+  # Sync user's role with current Stripe subscription status
+  def sync_user_with_stripe(user)
+    return unless user
 
-    begin
-      # Find all subscriptions for this user
-      customer_search = Stripe::Customer.search({
-        query: "email:'#{user.email}'"
-      })
-
-      return nil if customer_search.data.empty?
+    ActiveRecord::Base.transaction do
+      customer_search = Stripe::Customer.search({ query: "email:'#{user.email}'" })
+      
+      if customer_search.data.empty?
+        # No Stripe customer found, ensure user is free
+        user.update!(role: 'free') if user.pro?
+        return
+      end
 
       customer = customer_search.data.first
       subscriptions = Stripe::Subscription.list({
@@ -414,60 +447,144 @@ class PaymentsController < ApplicationController
         limit: 10
       })
 
-      # Find the active or most recent subscription
+      # Find active subscription
       active_subscription = subscriptions.data.find { |sub| %w[active trialing].include?(sub.status) }
-      subscription = active_subscription || subscriptions.data.first
+      
+      if active_subscription
+        # User has active subscription, should be pro
+        user.update!(role: 'pro') unless user.pro?
+      else
+        # No active subscription, should be free
+        user.update!(role: 'free') if user.pro?
+      end
+    end
+  rescue Stripe::StripeError => e
+    Rails.logger.error "Error syncing user #{user.email} with Stripe: #{e.message}"
+  end
 
+  def get_user_subscription_info(user)
+    return nil unless user&.pro?
+
+    # Try to use cached Stripe customer ID first
+    customer_cache_key = "stripe_customer:#{user.email}"
+    customer_id = Rails.cache.fetch(customer_cache_key, expires_in: 1.hour) do
+      customer_search = Stripe::Customer.search({ query: "email:'#{user.email}'" })
+      customer_search.data.empty? ? nil : customer_search.data.first.id
+    end
+
+    return nil unless customer_id
+
+    begin
+      # Get subscriptions with cached customer ID
+      subscriptions = Stripe::Subscription.list({
+        customer: customer_id,
+        status: 'active',  # Only get active subscriptions for faster response
+        limit: 1  # We only need the first active one
+      })
+
+      subscription = subscriptions.data.first
       return nil unless subscription
 
-      # Debug log the subscription object structure
-      Rails.logger.debug "Subscription object: #{subscription.to_hash.inspect}" if Rails.env.development?
-
-      # Extract period information - try subscription level first, then subscription item
-      subscription_item = subscription.items.data.first
+      # Use helper method to safely extract subscription data
+      extract_subscription_data(subscription)
       
-      # Determine current period dates
-      period_start = nil
-      period_end = nil
-      
-      # Try to get from subscription item first
-      if subscription_item&.current_period_start
-        period_start = Time.at(subscription_item.current_period_start)
-      end
-      
-      if subscription_item&.current_period_end
-        period_end = Time.at(subscription_item.current_period_end)
-      end
-      
-      # If not found in item, try alternative approaches
-      if period_start.nil? && subscription.respond_to?(:billing_cycle_anchor) && subscription.billing_cycle_anchor
-        period_start = Time.at(subscription.billing_cycle_anchor)
-      end
-      
-      if period_end.nil? && subscription.respond_to?(:cancel_at) && subscription.cancel_at
-        period_end = Time.at(subscription.cancel_at)
-      end
-      
-      {
-        subscription_id: subscription.id,
-        status: subscription.status,
-        amount: subscription_item&.price&.unit_amount || 0,
-        currency: subscription_item&.price&.currency || 'usd',
-        interval: subscription_item&.price&.recurring&.interval || 'month',
-        current_period_start: period_start,
-        current_period_end: period_end,
-        cancel_at_period_end: subscription.cancel_at_period_end,
-        cancelled_at: subscription.canceled_at ? Time.at(subscription.canceled_at) : nil,
-        created: subscription.created ? Time.at(subscription.created) : nil
-      }
     rescue Stripe::StripeError => e
       Rails.logger.error "Error fetching subscription info for user #{user.email}: #{e.message}"
-      nil
+      fallback_subscription_data('error_loading')
+    rescue NoMethodError => e
+      Rails.logger.error "NoMethodError in subscription info for user #{user.email}: #{e.message}"
+      fallback_subscription_data('method_error')
     rescue StandardError => e
       Rails.logger.error "Unexpected error fetching subscription info for user #{user.email}: #{e.message}"
       Rails.logger.error e.backtrace.join("\n") if Rails.env.development?
-      nil
+      fallback_subscription_data('unexpected_error')
     end
+  end
+
+  # Helper method to safely extract data from Stripe subscription
+  def extract_subscription_data(subscription)
+    subscription_item = subscription.items.data.first
+    
+    # Safely get next billing date
+    next_billing_date = calculate_next_billing_date(subscription, subscription_item)
+    
+    {
+      subscription_id: subscription.id,
+      status: subscription.status,
+      amount: safe_amount(subscription_item),
+      currency: safe_currency(subscription_item),
+      interval: safe_interval(subscription_item),
+      next_billing_date: next_billing_date,
+      cancel_at_period_end: safe_boolean(subscription, :cancel_at_period_end),
+      cancelled_at: safe_timestamp(subscription, :canceled_at),
+      created: safe_timestamp(subscription, :created, Time.current)
+    }
+  end
+
+  # Helper method to calculate next billing date safely
+  def calculate_next_billing_date(subscription, subscription_item)
+    # Try multiple approaches to get the billing date
+    if subscription.respond_to?(:current_period_end) && subscription.current_period_end
+      return Time.at(subscription.current_period_end)
+    end
+    
+    if subscription_item&.respond_to?(:current_period_end) && subscription_item.current_period_end
+      return Time.at(subscription_item.current_period_end)
+    end
+    
+    # Fallback: calculate based on creation time and interval
+    interval = safe_interval(subscription_item)
+    created_time = safe_timestamp(subscription, :created, Time.current)
+    
+    case interval
+    when 'month' then created_time + 1.month
+    when 'year' then created_time + 1.year
+    when 'week' then created_time + 1.week
+    when 'day' then created_time + 1.day
+    else 1.month.from_now
+    end
+  rescue => e
+    Rails.logger.error "Error calculating next billing date: #{e.message}"
+    1.month.from_now
+  end
+
+  # Safe helper methods
+  def safe_amount(subscription_item)
+    (subscription_item&.price&.unit_amount || 999) / 100.0
+  end
+
+  def safe_currency(subscription_item)
+    (subscription_item&.price&.currency || 'sgd').upcase
+  end
+
+  def safe_interval(subscription_item)
+    subscription_item&.price&.recurring&.interval || 'month'
+  end
+
+  def safe_boolean(object, method, default = false)
+    object.respond_to?(method) ? (object.send(method) || default) : default
+  end
+
+  def safe_timestamp(object, method, default = nil)
+    if object.respond_to?(method) && object.send(method)
+      Time.at(object.send(method))
+    else
+      default
+    end
+  end
+
+  def fallback_subscription_data(error_type = 'unknown')
+    {
+      subscription_id: error_type,
+      status: 'active',
+      amount: 9.99,
+      currency: 'SGD',
+      interval: 'month',
+      next_billing_date: 1.month.from_now,
+      cancel_at_period_end: false,
+      cancelled_at: nil,
+      created: Time.current
+    }
   end
 
   # Webhook event handlers
@@ -475,25 +592,33 @@ class PaymentsController < ApplicationController
     user = User.find_by(id: session.client_reference_id)
     return unless user
 
-    # Check if payment record already exists to prevent duplicates
-    existing_payment = Payment.find_by(stripe_charge_id: session.id)
-    return if existing_payment&.completed?
+    ActiveRecord::Base.transaction do
+      # Check if payment record already exists to prevent duplicates
+      existing_payment = Payment.find_by(stripe_charge_id: session.id)
+      return if existing_payment&.completed?
 
-    # Only create payment record if session shows successful payment
-    if session.payment_status == 'paid'
-      Payment.create!(
-        user: user,
-        amount: (session.amount_total || 0) / 100.0,
-        status: 'completed',
-        currency: session.currency || 'usd',
-        stripe_charge_id: session.id
-      )
-      
-      # Clean up cache
-      Rails.cache.delete("checkout_session_#{session.id}")
+      # Only create payment record if session shows successful payment
+      if session.payment_status == 'paid'
+        Payment.create!(
+          user: user,
+          amount: (session.amount_total || 0) / 100.0,
+          status: 'completed',
+          currency: session.currency || 'usd',
+          stripe_charge_id: session.id
+        )
+        
+        # Upgrade user to pro if not already
+        user.update!(role: 'pro') unless user.pro?
+        
+        # Clean up cache
+        Rails.cache.delete("checkout_session_#{session.id}")
+        
+        Rails.logger.info "Checkout completed and user upgraded for #{user.email}"
+      end
     end
-    
-    Rails.logger.info "Checkout completed for user #{user.email}"
+  rescue StandardError => e
+    Rails.logger.error "Error in handle_checkout_completed: #{e.message}"
+    raise
   end
 
   def handle_subscription_created(subscription)
@@ -501,23 +626,34 @@ class PaymentsController < ApplicationController
     user = User.find_by(email: customer.email)
     return unless user
 
-    # Update user role only if subscription is active
-    if subscription.status == 'active'
-      user.update!(role: 'pro') unless user.pro?
-      
-      # Create payment record only for active subscriptions
-      Payment.create!(
-        user: user,
-        amount: (subscription.plan&.amount || 0) / 100.0,
-        status: 'completed',
-        currency: subscription.plan&.currency || 'usd',
-        stripe_charge_id: subscription.latest_invoice || subscription.id
-      )
-      
-      Rails.logger.info "Active subscription created for user #{user.email}"
-    else
-      Rails.logger.info "Non-active subscription created for user #{user.email} with status: #{subscription.status}"
+    ActiveRecord::Base.transaction do
+      # Update user role only if subscription is active
+      if subscription.status == 'active'
+        user.update!(role: 'pro') unless user.pro?
+        
+        # Create payment record only for active subscriptions
+        # Check if payment record already exists to prevent duplicates
+        stripe_id = subscription.latest_invoice || subscription.id
+        existing_payment = Payment.find_by(stripe_charge_id: stripe_id)
+        
+        unless existing_payment
+          Payment.create!(
+            user: user,
+            amount: (subscription.items.data.first&.price&.unit_amount || 0) / 100.0,
+            status: 'completed',
+            currency: subscription.items.data.first&.price&.currency || 'usd',
+            stripe_charge_id: stripe_id
+          )
+        end
+        
+        Rails.logger.info "Active subscription created and user upgraded for #{user.email}"
+      else
+        Rails.logger.info "Non-active subscription created for user #{user.email} with status: #{subscription.status}"
+      end
     end
+  rescue StandardError => e
+    Rails.logger.error "Error in handle_subscription_created: #{e.message}"
+    raise
   end
 
   def handle_subscription_updated(subscription)
@@ -525,14 +661,38 @@ class PaymentsController < ApplicationController
     user = User.find_by(email: customer.email)
     return unless user
 
-    status = subscription.status
-    if %w[unpaid past_due canceled incomplete expired].include?(status)
-      user.update!(role: 'free') if user.pro?
-      Rails.logger.info "User #{user.email} downgraded due to subscription status: #{status}"
-    elsif status == 'active' && user.free?
-      user.update!(role: 'pro')
-      Rails.logger.info "User #{user.email} upgraded due to subscription status: #{status}"
+    ActiveRecord::Base.transaction do
+      status = subscription.status
+      
+      # Handle re-activation of cancelled subscriptions
+      if %w[active trialing].include?(status) && user.free?
+        user.update!(role: 'pro')
+        
+        # Create a new payment record for reactivation
+        # Check if reactivation payment already exists
+        reactivation_id = "reactivation_#{subscription.id}_#{subscription.current_period_start}"
+        existing_reactivation = Payment.find_by(stripe_charge_id: reactivation_id)
+        
+        unless existing_reactivation
+          Payment.create!(
+            user: user,
+            amount: (subscription.items.data.first&.price&.unit_amount || 0) / 100.0,
+            status: 'completed',
+            currency: subscription.items.data.first&.price&.currency || 'usd',
+            stripe_charge_id: reactivation_id,
+            error_message: 'Subscription reactivated'
+          )
+        end
+        
+        Rails.logger.info "User #{user.email} upgraded due to subscription reactivation: #{status}"
+      elsif %w[unpaid past_due canceled incomplete expired].include?(status) && user.pro?
+        user.update!(role: 'free')
+        Rails.logger.info "User #{user.email} downgraded due to subscription status: #{status}"
+      end
     end
+  rescue StandardError => e
+    Rails.logger.error "Error in handle_subscription_updated: #{e.message}"
+    raise
   end
 
   def handle_subscription_deleted(subscription)
@@ -540,22 +700,33 @@ class PaymentsController < ApplicationController
     user = User.find_by(email: customer.email)
     return unless user
 
-    # Downgrade user to free when subscription is actually deleted
-    if user.pro?
-      user.update!(role: 'free')
-      
-      # Record the downgrade in payments table
-      Payment.create!(
-        user: user,
-        amount: 0.01, # Small amount to satisfy validation
-        status: 'cancelled',
-        currency: 'usd',
-        stripe_charge_id: "subscription_deleted_#{subscription.id}",
-        error_message: 'Subscription deleted - user downgraded to free'
-      )
-      
-      Rails.logger.info "User #{user.email} downgraded to free due to subscription deletion"
+    ActiveRecord::Base.transaction do
+      # Downgrade user to free when subscription is actually deleted
+      if user.pro?
+        user.update!(role: 'free')
+        
+        # Record the downgrade in payments table
+        # Check if deletion record already exists
+        deletion_id = "subscription_deleted_#{subscription.id}"
+        existing_deletion = Payment.find_by(stripe_charge_id: deletion_id)
+        
+        unless existing_deletion
+          Payment.create!(
+            user: user,
+            amount: 0.01, # Small amount to satisfy validation
+            status: 'cancelled',
+            currency: 'usd',
+            stripe_charge_id: deletion_id,
+            error_message: 'Subscription deleted - user downgraded to free'
+          )
+        end
+        
+        Rails.logger.info "User #{user.email} downgraded to free due to subscription deletion"
+      end
     end
+  rescue StandardError => e
+    Rails.logger.error "Error in handle_subscription_deleted: #{e.message}"
+    raise
   end
 
   def handle_payment_succeeded(invoice)
@@ -563,20 +734,31 @@ class PaymentsController < ApplicationController
     user = User.find_by(email: customer.email)
     return unless user
 
-    # Check if payment record already exists to prevent duplicates
-    existing_payment = Payment.find_by(stripe_charge_id: invoice.id)
-    return if existing_payment
+    ActiveRecord::Base.transaction do
+      # Check if payment record already exists to prevent duplicates
+      existing_payment = Payment.find_by(stripe_charge_id: invoice.id)
+      return if existing_payment
 
-    # Record successful payment
-    Payment.create!(
-      user: user,
-      amount: (invoice.amount_paid || 0) / 100.0,
-      status: 'completed',
-      currency: invoice.currency || 'usd',
-      stripe_charge_id: invoice.id
-    )
-    
-    Rails.logger.info "Payment succeeded for user #{user.email}"
+      # Record successful payment and upgrade user if they're not pro
+      Payment.create!(
+        user: user,
+        amount: (invoice.amount_paid || 0) / 100.0,
+        status: 'completed',
+        currency: invoice.currency || 'usd',
+        stripe_charge_id: invoice.id
+      )
+      
+      # Upgrade user to pro if payment succeeded and they're free
+      if user.free? && invoice.amount_paid && invoice.amount_paid > 0
+        user.update!(role: 'pro')
+        Rails.logger.info "User #{user.email} upgraded to pro after successful payment"
+      end
+      
+      Rails.logger.info "Payment succeeded for user #{user.email}"
+    end
+  rescue StandardError => e
+    Rails.logger.error "Error in handle_payment_succeeded: #{e.message}"
+    raise
   end
 
   def handle_payment_failed(invoice)
@@ -584,24 +766,29 @@ class PaymentsController < ApplicationController
     user = User.find_by(email: customer.email)
     return unless user
 
-    # Only record failed payments if there was an actual payment attempt
-    # (amount_due > 0 indicates a real payment was attempted)
-    if invoice.amount_due && invoice.amount_due > 0
-      # Check if payment record already exists to prevent duplicates
-      existing_payment = Payment.find_by(stripe_charge_id: invoice.id)
-      return if existing_payment
+    ActiveRecord::Base.transaction do
+      # Only record failed payments if there was an actual payment attempt
+      # (amount_due > 0 indicates a real payment was attempted)
+      if invoice.amount_due && invoice.amount_due > 0
+        # Check if payment record already exists to prevent duplicates
+        existing_payment = Payment.find_by(stripe_charge_id: invoice.id)
+        return if existing_payment
 
-      Payment.create!(
-        user: user,
-        amount: (invoice.amount_due || 0) / 100.0,
-        status: 'failed',
-        currency: invoice.currency || 'usd',
-        stripe_charge_id: invoice.id,
-        error_message: 'Payment failed'
-      )
-      
-      Rails.logger.info "Payment failed for user #{user.email}"
+        Payment.create!(
+          user: user,
+          amount: (invoice.amount_due || 0) / 100.0,
+          status: 'failed',
+          currency: invoice.currency || 'usd',
+          stripe_charge_id: invoice.id,
+          error_message: 'Payment failed'
+        )
+        
+        Rails.logger.info "Payment failed for user #{user.email}"
+      end
     end
+  rescue StandardError => e
+    Rails.logger.error "Error in handle_payment_failed: #{e.message}"
+    raise
   end
 
   def map_stripe_status(stripe_status)

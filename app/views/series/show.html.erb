@@ -1,8 +1,18 @@
 <% content_for :head do %>
+  <!-- Preload critical assets -->
+  <%= preload_link_tag asset_path('cinema_series_show.css'), as: :style %>
+  <%= preload_link_tag asset_path('input_optimization.js'), as: :script %>
+  <%= preload_link_tag asset_path('scroll_optimization.js'), as: :script %>
+  
+  <!-- External fonts with display swap -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
   <%= stylesheet_link_tag 'cinema_series_show', media: 'all' %>
 <% end %>
-<% cache [@series, @episodes.current_page] do %>
+
+<% cache("series_#{@series.id}_show_v2", expires_in: 30.minutes) do %>
 <div class="series-hero-section">
   <div class="container">
     <div class="row justify-content-center">
@@ -11,20 +21,9 @@
           <div class="row align-items-start">
             <div class="col-lg-4 mb-4 mb-lg-0">
               <div class="series-poster-container">
-                <% if @series.img.attached? %>
-                  <%= image_tag url_for(@series.img), 
-                      class: "series-poster", 
-                      alt: @series.title %>
-                <% elsif @series.img.is_a?(String) && @series.img.present? %>
-                  <%= image_tag @series.img, 
-                      class: "series-poster", 
-                      alt: @series.title %>
-                <% else %>
-                  <div class="series-placeholder">
-                    <i class="fas fa-tv me-2"></i>
-                    No image available
-                  </div>
-                <% end %>
+                <%= image_tag series_image_url(@series), 
+                    class: "series-poster", 
+                    alt: @series.title %>
               </div>
             </div>
             
@@ -32,14 +31,13 @@
               <h1 class="series-title"><%= @series.title %></h1>
               <p class="series-description"><%= @series.description %></p>
               
-              <% all_tags = (@series.tags + @series.movies.flat_map(&:tags)).uniq %>
-              <% if all_tags.any? %>
+              <% if @series.tags.any? %>
                 <div class="series-tags">
                   <span class="series-tags-label">
                     <i class="fas fa-tags me-2"></i>Genres & Tags
                   </span>
                   <div>
-                    <% all_tags.each do |tag| %>
+                    <% @series.tags.each do |tag| %>
                       <span class="series-tag"><%= tag.name %></span>
                     <% end %>
                   </div>
@@ -67,6 +65,7 @@
             </div>
           </div>
           
+          <% cache("series_#{@series.id}_episodes_page_#{@episodes.current_page}_v3", expires_in: 30.minutes) do %>
           <div class="episodes-section">
             <h2 class="episodes-title">
               <i class="fas fa-play-circle me-2"></i>
@@ -77,22 +76,11 @@
               <% @episodes.each do |movie| %>
                 <div class="col-md-6 col-xl-4">
                   <div class="episode-card">
-                    <div class="episode-image">
-                      <% if @series.img.attached? %>
-                        <%= image_tag url_for(@series.img), 
-                            alt: @series.title, 
-                            loading: "lazy" %>
-                      <% elsif @series.img.is_a?(String) && @series.img.present? %>
-                        <%= image_tag @series.img, 
-                            alt: @series.title, 
-                            loading: "lazy" %>
-                      <% else %>
-                        <div class="episode-placeholder">
-                          <i class="fas fa-film me-2"></i>
-                          No image available
-                        </div>
-                      <% end %>
-                    </div>
+                    <%= link_to movie_path(movie), class: "episode-image" do %>
+                      <%= image_tag series_image_url(@series), 
+                          alt: @series.title, 
+                          loading: "lazy" %>
+                    <% end %>
                     
                     <div class="episode-body">
                       <h5 class="episode-title"><%= movie.title %></h5>
@@ -139,6 +127,7 @@
               <%= paginate @episodes %>
             </div>
           </div>
+          <% end %>
         </div>
       </div>
     </div>

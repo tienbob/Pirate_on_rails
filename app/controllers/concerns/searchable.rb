@@ -71,13 +71,13 @@ module Searchable
   # - Handles errors gracefully: if search fails, shows a flash alert and redirects back.
   def search_series(params)
     cache_key = [
-      "search_series",
+      "search_series_v2",
       params[:q],
       params[:tags]&.sort,
       (respond_to?(:current_user) ? current_user&.id : nil)
     ].join(":")
     begin
-      Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
+      Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
         query = params[:q]
         tags = params[:tags]
         # Fix for tags submitted as a single comma-separated string
@@ -101,15 +101,20 @@ module Searchable
         # If any search conditions, use Elasticsearch; else return all series
         if search_conditions.any?
           Rails.logger.info "ElasticSearch: Searching series with conditions: #{search_conditions.inspect}"
-          series = Series.__elasticsearch__.search({
+          
+          # Use Elasticsearch search with size limit to avoid loading everything
+          search_results = Series.__elasticsearch__.search({
             query: {
               bool: {
                 must: search_conditions
               }
-            }
-          }).records
-          ar_series = Series.includes(:tags, movies: :tags).where(id: series.map(&:id))
-          Rails.logger.info "ElasticSearch: Found #{ar_series.inspect} series matching conditions."
+            },
+            size: 1000  # Reasonable limit to prevent memory issues
+          })
+          
+          series_ids = search_results.records.map(&:id)
+          ar_series = Series.includes(:tags, movies: :tags).where(id: series_ids)
+          Rails.logger.info "ElasticSearch: Found #{ar_series.count} series matching conditions."
           ar_series
         else
           Series.includes(:tags, movies: :tags).all
@@ -120,13 +125,37 @@ module Searchable
       # Log error details for debugging
       Rails.logger.error "Elasticsearch search_series error: #{e.class} - #{e.message}"
       Rails.logger.error e.backtrace.join("\n") if e.backtrace
-      if defined?(redirect_back)
-        flash[:alert] = "Search is not available, please try again later. Error: #{e.class} - #{e.message}"
-        redirect_back(fallback_location: series_index_path)
-        return Series.none
-      else
-        raise e
-      end
+      
+      # Fallback to database search instead of crashing
+      Rails.logger.info "Falling back to database search"
+      fallback_search_series(params)
     end
+  end
+
+  private
+
+  # Fallback search using database queries when Elasticsearch is unavailable
+  def fallback_search_series(params)
+    query = params[:q]
+    tags = params[:tags]
+    
+    # Fix for tags submitted as a single comma-separated string
+    if tags.is_a?(Array) && tags.size == 1 && tags.first.include?(',')
+      tags = tags.first.split(',').map(&:strip)
+    end
+    
+    series_scope = Series.includes(:tags, movies: :tags)
+    
+    # Add title search if present
+    if query.present?
+      series_scope = series_scope.where("title ILIKE ?", "%#{query}%")
+    end
+    
+    # Add tag search if present
+    if tags.present?
+      series_scope = series_scope.joins(:tags).where(tags: { name: tags })
+    end
+    
+    series_scope
   end
 end

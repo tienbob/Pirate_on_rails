@@ -1,6 +1,4 @@
 
-<%= stylesheet_link_tag 'cinema_series_results', media: 'all' %>
-
 <div id="search-loading" class="text-center py-5" style="display: none;">
   <div class="spinner-border text-primary" role="status">
     <span class="visually-hidden">Loading...</span>
@@ -12,43 +10,39 @@
 <% if @series.any? %>
   <div class="row g-4">
     <% @series.each do |series| %>
-      <div class="col-md-6 col-lg-4">
-        <div class="series-card">
-          <div class="series-card-image">
-            <% if series.img.attached? %>
-              <%= image_tag url_for(series.img), 
+      <% cache [series, series.tags.maximum(:updated_at)] do %>
+        <div class="col-md-6 col-lg-4">
+          <div class="series-card">
+            <div class="series-card-image">
+              <%= image_tag series_image_url(series), 
                   alt: series.title, 
-                  loading: "lazy" %>
-            <% elsif series.img.is_a?(String) && series.img.present? %>
-              <%= image_tag series.img, 
-                  alt: series.title, 
-                  loading: "lazy" %>
-            <% else %>
-              <%= image_tag 'series/default.JPG', 
-                  alt: 'Default series image', 
-                  loading: "lazy" %>
-            <% end %>
-          </div>
-          <div class="series-card-body">
-            <h5 class="series-card-title"><%= series.title %></h5>
-            <p class="series-card-description">
-              <%= truncate(series.description, length: 120) %>
-            </p>
-            <% if series.tags.any? %>
-              <div class="series-card-tags">
-                <% series.tags.limit(3).each do |tag| %>
-                  <span class="series-card-tag"><%= tag.name %></span>
-                <% end %>
-              </div>
-            <% end %>
-            <%= link_to series_path(series), 
-                class: 'series-card-btn', 
-                data: { turbo: false } do %>
-              <i class="fas fa-tv me-2"></i>Explore Series
-            <% end %>
+                  loading: "lazy",
+                  decoding: "async",
+                  width: "320",
+                  height: "180",
+                  class: "img-fluid" %>
+            </div>
+            <div class="series-card-body">
+              <h5 class="series-card-title"><%= series.title %></h5>
+              <p class="series-card-description">
+                <%= truncate(series.description, length: 120) %>
+              </p>
+              <% if series.tags.loaded? && series.tags.any? %>
+                <div class="series-card-tags">
+                  <% series.tags.first(3).each do |tag| %>
+                    <span class="series-card-tag"><%= tag.name %></span>
+                  <% end %>
+                </div>
+              <% end %>
+              <%= link_to series_path(series), 
+                  class: 'series-card-btn', 
+                  data: { turbo: false } do %>
+                <i class="fas fa-tv me-2"></i>Explore Series
+              <% end %>
+            </div>
           </div>
         </div>
-      </div>
+      <% end %>
     <% end %>
   </div>
   <% if @series.respond_to?(:total_pages) %>

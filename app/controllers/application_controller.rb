@@ -17,12 +17,12 @@ class ApplicationController < ActionController::Base
 
   def user_not_authorized
     flash[:alert] = "You are not authorized to perform this action."
-    redirect_back(fallback_location: root_path)
+    redirect_back(fallback_location: series_index_path)
   end
 
   def record_not_found
     flash[:alert] = "The requested resource was not found."
-    redirect_to root_path
+    redirect_to series_index_path
   end
 
   def handle_standard_error(exception)
@@ -37,7 +37,7 @@ class ApplicationController < ActionController::Base
     # Sentry.capture_exception(exception) if defined?(Sentry)
     
     flash[:alert] = "Something went wrong. Please try again."
-    redirect_back(fallback_location: root_path)
+    redirect_back(fallback_location: series_index_path)
   end
 
   def set_security_headers
@@ -81,8 +81,14 @@ class ApplicationController < ActionController::Base
     # Log user activity for analytics/security
     Rails.logger.info "User Activity: #{current_user.email} - #{request.method} #{request.path}"
     
-    # Update last seen timestamp
-    current_user.touch(:last_seen_at) if current_user.respond_to?(:last_seen_at)
+    # Update last seen timestamp only once per 5 minutes to reduce DB writes
+    last_seen_cache_key = "user_last_seen_#{current_user.id}"
+    last_update = Rails.cache.read(last_seen_cache_key)
+    
+    if last_update.nil? || last_update < 5.minutes.ago
+      current_user.touch(:last_seen_at) if current_user.respond_to?(:last_seen_at)
+      Rails.cache.write(last_seen_cache_key, Time.current, expires_in: 5.minutes)
+    end
   end
 
   protected
@@ -99,7 +105,7 @@ class ApplicationController < ActionController::Base
     current_count = Rails.cache.read(rate_limit_key).to_i
     if current_count >= limit
       flash[:alert] = 'Too many requests. Please try again later.'
-      redirect_back(fallback_location: root_path)
+      redirect_back(fallback_location: series_index_path)
       return false
     end
     
@@ -111,7 +117,7 @@ class ApplicationController < ActionController::Base
   def require_admin!
     unless current_user&.admin?
       flash[:alert] = 'You are not authorized to access this area.'
-      redirect_to root_path
+      redirect_to series_index_path
     end
   end
 

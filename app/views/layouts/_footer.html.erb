@@ -13,12 +13,12 @@
       <a href="https://github.com/tienbob/Pirate_on_rails" class="cinema-footer-link" target="_blank">
         <i class="fab fa-github me-1"></i>GitHub
       </a>
-      <a href="/about" class="cinema-footer-link">
+      <%= link_to about_path, class: "cinema-footer-link" do %>
         <i class="fas fa-info-circle me-1"></i>About
-      </a>
-      <a href="/contact" class="cinema-footer-link">
+      <% end %>
+      <%= link_to contact_path, class: "cinema-footer-link" do %>
         <i class="fas fa-envelope me-1"></i>Contact
-      </a>
+      <% end %>
     </div>
     
   </div>

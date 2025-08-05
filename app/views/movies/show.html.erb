@@ -2,7 +2,7 @@
   <%= stylesheet_link_tag 'cinema_movie_show', media: 'all' %>
   <% content_for :preload_images do %>
     <% if @movie.video_file.attached? %>
-      <%= preload_link_tag url_for(@movie.video_file), as: :video %>
+      <%= preload_link_tag movie_video_url(@movie), as: :video %>
     <% end %>
   <% end %>
 <% end %>
@@ -19,7 +19,7 @@
                    data-video-analytics-movie-id-value="<%= @movie.id %>" 
                    data-video-analytics-csrf-token-value="<%= form_authenticity_token %>">
                 <% if @movie.video_file.attached? && @movie.viewable_by?(current_user) %>
-                  <%= video_tag @movie.cached_video_url || url_for(@movie.video_file), 
+                  <%= video_tag movie_video_url(@movie), 
                       controls: true, 
                       class: "movie-video", 
                       preload: "metadata",

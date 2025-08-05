@@ -49,3 +49,39 @@ module CacheHelper
     "series_#{series_id}_movies"
   end
 end
+
+# Performance monitoring for slow operations
+ActiveSupport::Notifications.subscribe "process_action.action_controller" do |name, started, finished, unique_id, data|
+  duration = finished - started
+  
+  if duration > 1.0 # Log requests taking more than 1 second
+    controller = data[:controller]
+    action = data[:action]
+    status = data[:status]
+    
+    Rails.logger.warn "SLOW REQUEST: #{controller}##{action} took #{duration.round(2)}s (Status: #{status})"
+    
+    # Log specific timing breakdown
+    if data[:db_runtime]
+      db_percentage = (data[:db_runtime] / (duration * 1000)) * 100
+      Rails.logger.warn "  - Database: #{data[:db_runtime].round(2)}ms (#{db_percentage.round(1)}%)"
+    end
+    
+    if data[:view_runtime]
+      view_percentage = (data[:view_runtime] / (duration * 1000)) * 100
+      Rails.logger.warn "  - View rendering: #{data[:view_runtime].round(2)}ms (#{view_percentage.round(1)}%)"
+    end
+    
+    # Calculate overhead time (non-DB, non-view)
+    overhead_time = duration * 1000 - (data[:db_runtime] || 0) - (data[:view_runtime] || 0)
+    overhead_percentage = (overhead_time / (duration * 1000)) * 100
+    Rails.logger.warn "  - Overhead: #{overhead_time.round(2)}ms (#{overhead_percentage.round(1)}%)"
+  end
+end
+
+# Monitor large query results
+ActiveSupport::Notifications.subscribe "instantiation.active_record" do |name, started, finished, unique_id, data|
+  if data[:record_count] > 100
+    Rails.logger.info "Large query result: #{data[:class_name]} returned #{data[:record_count]} records"
+  end
+end

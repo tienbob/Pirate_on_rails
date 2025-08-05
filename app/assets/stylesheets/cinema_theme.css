@@ -39,10 +39,11 @@ body {
 
 .cinema-main-content {
   background: rgba(15, 23, 42, 0.3);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(3px); /* Reduced from 10px for better scroll performance */
   border-radius: 0;
   min-height: calc(100vh - 140px);
   padding: 0;
+  transform: translateZ(0); /* Force GPU layer */
 }
 
 /* Alert Styles */
@@ -232,5 +233,123 @@ body {
   }
   40% {
     opacity: 1;
+  }
+}
+
+/* Input Performance Optimization Styles */
+input, textarea, select, button {
+  will-change: transform, background-color, color, box-shadow;
+  transform: translateZ(0); /* GPU acceleration */
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+input:focus, textarea:focus, select:focus {
+  transform: translateZ(0) scale(1.01);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover {
+  transform: translateZ(0) translateY(-1px);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:active {
+  transform: translateZ(0) translateY(0);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reduce transition times for better performance */
+* {
+  transition-duration: 0.15s !important;
+}
+
+/* Optimized focus styles */
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--cinema-bright-blue);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Optimized scrolling performance */
+html {
+  scroll-behavior: auto; /* Disable smooth scrolling for better performance */
+}
+
+/* Container optimization */
+.container, .container-fluid {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Scroll performance optimizations */
+body {
+  overflow-x: hidden;
+  scroll-behavior: auto;
+  -webkit-overflow-scrolling: touch; /* iOS optimization */
+}
+
+/* Optimize scrollable elements */
+.cinema-main-content, .overflow-auto, .overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: auto;
+  will-change: scroll-position;
+  transform: translateZ(0);
+}
+
+/* Reduce expensive effects during scroll */
+.cinema-main-content {
+  backdrop-filter: blur(5px); /* Reduced from 10px */
+}
+
+/* Optimize heavy gradients during scroll */
+@media (prefers-reduced-motion: no-preference) {
+  .cinema-alert {
+    backdrop-filter: blur(10px); /* Reduced from 20px */
+  }
+  
+  .cinema-chat-popup {
+    backdrop-filter: blur(10px); /* Reduced from 20px */
+  }
+}
+
+/* Performance mode for scrolling */
+.scrolling .cinema-main-content {
+  backdrop-filter: blur(1px) !important; /* Minimal blur during scroll */
+}
+
+.scrolling .cinema-alert {
+  backdrop-filter: blur(2px) !important;
+}
+
+.scrolling .cinema-chat-popup {
+  backdrop-filter: blur(2px) !important;
+}
+
+/* Additional scroll optimizations */
+.scrolling * {
+  pointer-events: none; /* Disable interactions during scroll */
+}
+
+.scrolling button, .scrolling input, .scrolling textarea, .scrolling select {
+  pointer-events: auto; /* Re-enable for form elements */
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    backdrop-filter: none !important;
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High performance mode for lower-end devices */
+@media (max-resolution: 1.5dppx) {
+  .cinema-main-content,
+  .cinema-alert,
+  .cinema-chat-popup {
+    backdrop-filter: blur(1px) !important;
   }
 }

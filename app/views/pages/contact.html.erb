@@ -1,0 +1,84 @@
+<% content_for :title, "Contact - Pirate on Rails" %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="text-center mb-5">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4 mx-auto" style="width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-envelope text-white fa-2x"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-white mb-3">Contact Us</h1>
+        <p class="text-lg text-gray-300">Get in touch with our support team</p>
+      </div>
+
+      <div class="rounded-lg shadow-lg overflow-hidden mb-6" style="background: rgba(15, 23, 42, 0.85); border: 1px solid #334155;">
+        <div class="p-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="text-center p-4 rounded-lg" style="background: rgba(30, 41, 59, 0.5);">
+              <i class="fas fa-headset text-blue-400 text-2xl mb-3"></i>
+              <h3 class="text-lg font-semibold text-white mb-2">Support</h3>
+              <p class="text-gray-300 text-sm mb-3">Need help with your account or streaming?</p>
+              <a href="#" class="text-blue-400 hover:text-blue-300">support@pirateonrails.com</a>
+            </div>
+            
+            <div class="text-center p-4 rounded-lg" style="background: rgba(30, 41, 59, 0.5);">
+              <i class="fas fa-business-time text-blue-400 text-2xl mb-3"></i>
+              <h3 class="text-lg font-semibold text-white mb-2">Business</h3>
+              <p class="text-gray-300 text-sm mb-3">Partnership and business inquiries</p>
+              <a href="#" class="text-blue-400 hover:text-blue-300">business@pirateonrails.com</a>
+            </div>
+          </div>
+
+          <div class="text-center">
+            <h3 class="text-lg font-semibold text-white mb-4">Live Chat Support</h3>
+            <p class="text-gray-300 mb-4">
+              For immediate assistance, use our live chat feature available 24/7 for Pro subscribers.
+            </p>
+            
+            <% if current_user&.pro? %>
+              <p class="text-green-400 mb-4">
+                <i class="fas fa-check-circle mr-2"></i>
+                Live chat is available to you as a Pro subscriber!
+              </p>
+            <% else %>
+              <p class="text-gray-400 mb-4">
+                <i class="fas fa-info-circle mr-2"></i>
+                Upgrade to Pro to access live chat support
+              </p>
+              <%= link_to "Upgrade to Pro", upgrade_payment_path, 
+                  class: "inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-200 mr-3" %>
+            <% end %>
+          </div>
+
+          <div class="mt-6 pt-6 border-t border-gray-600">
+            <h3 class="text-lg font-semibold text-white mb-3">Frequently Asked Questions</h3>
+            <div class="space-y-3">
+              <details class="text-gray-300">
+                <summary class="cursor-pointer text-white font-medium mb-2">How do I upgrade to Pro?</summary>
+                <p class="text-sm ml-4">Visit your account dashboard and click "Upgrade to Pro" to access premium features and content.</p>
+              </details>
+              
+              <details class="text-gray-300">
+                <summary class="cursor-pointer text-white font-medium mb-2">What payment methods do you accept?</summary>
+                <p class="text-sm ml-4">We accept all major credit cards through our secure Stripe payment processing.</p>
+              </details>
+              
+              <details class="text-gray-300">
+                <summary class="cursor-pointer text-white font-medium mb-2">Can I cancel my subscription anytime?</summary>
+                <p class="text-sm ml-4">Yes! You can cancel your subscription anytime from your account management page.</p>
+              </details>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <%= link_to series_index_path, 
+            class: "inline-flex items-center text-gray-400 hover:text-white transition-colors duration-200" do %>
+          <i class="fas fa-arrow-left mr-2"></i>
+          Return to Streaming
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

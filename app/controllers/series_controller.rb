@@ -17,6 +17,7 @@ class SeriesController < ApplicationController
   def index
     page = (params[:page] || 1).to_i
     per_page = 8
+    
     if params[:search_type] == 'episode' && (params[:q].present? || params[:tags].present?)
       movies = search_movies(params)
       @movies = policy_scope(movies).page(page).per(per_page)
@@ -26,26 +27,69 @@ class SeriesController < ApplicationController
         format.turbo_stream { render partial: 'movies/results', locals: { movies: @movies } }
       end
     elsif params[:q].present? || params[:tags].present?
-      @series = policy_scope(search_series(params))
-      @series = @series.order(updated_at: :desc)
-      @series = Kaminari.paginate_array(@series, total_count: @series.size).page(page).per(per_page)
+      # Efficient search with proper pagination - avoid loading all records
+      search_scope = policy_scope(search_series(params))
+      
+      # Apply ordering and pagination directly to the relation
+      @series = search_scope
+        .order(updated_at: :desc)
+        .page(page)
+        .per(per_page)
+        
+      # Initialize empty hash for image URLs - we'll populate in the view as needed
+      @series_image_urls = {}
     else
-      series_scope = policy_scope(Series.includes(:tags, movies: :tags))
-      if page <= 3
-        cached_ids = Rails.cache.fetch(["series_index_ids", page], expires_in: 60.minutes) do
-          series_scope.order(updated_at: :desc).page(page).per(per_page).pluck(:id)
-        end
-        @series = series_scope.where(id: cached_ids).order(updated_at: :desc)
-        @series = Kaminari.paginate_array(@series, total_count: series_scope.count).page(page).per(per_page)
-      else
-        @series = series_scope.order(updated_at: :desc).page(page).per(per_page)
+      # Use optimized queries with proper eager loading
+      series_scope = policy_scope(Series.all)
+      
+      # Cache total count separately to avoid N+1 queries
+      total_count = Rails.cache.fetch("series_total_count", expires_in: 30.minutes) do
+        series_scope.count
       end
+      
+      # Get paginated series with proper eager loading
+      @series = series_scope
+        .includes(:tags, movies: [:tags])
+        .order(updated_at: :desc)
+        .page(page)
+        .per(per_page)
+        
+      # Set total count for Kaminari pagination
+      @series.instance_variable_set(:@total_count, total_count)
+      
+      # Initialize empty hash for image URLs - we'll populate in the view as needed
+      @series_image_urls = {}
     end
   end
 
   def show
-    @series = Series.includes(:tags, movies: :tags).find(params[:id])
-    @episodes = @series.movies.order(:release_date).page(params[:page]).per(8)
+    # Use cached query to avoid repeated database hits
+    cache_key = "series_#{params[:id]}_with_associations"
+    @series = Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+      Series.includes(:tags, movies: [:tags]).find(params[:id])
+    end
+    
+    # Optimize episodes query with cached pagination data
+    page = (params[:page] || 1).to_i
+    per_page = 8
+    
+    # Cache the total episodes count
+    total_episodes_key = "series_#{@series.id}_total_episodes"
+    total_episodes = Rails.cache.fetch(total_episodes_key, expires_in: 30.minutes) do
+      @series.movies.count
+    end
+    
+    # Get paginated episodes efficiently - simplified approach
+    episodes_start = Time.current
+    @episodes = @series.movies
+      .includes(:tags)
+      .order(:release_date)
+      .page(page)
+      .per(per_page)
+      
+    # Manually set total count to avoid extra queries
+    @episodes.instance_variable_set(:@total_count, total_episodes)
+    Rails.logger.info "Episodes query took: #{((Time.current - episodes_start) * 1000).round(2)}ms"
   end
 
   def new
@@ -100,19 +144,46 @@ class SeriesController < ApplicationController
 
   private
 
-  # Expire show page cache for all paginated episode pages of this series
+  # Expire caches when series data changes
   def expire_series_cache(series)
+    # Clear series count cache
+    Rails.cache.delete("series_total_count")
+    
+    # Clear series-specific caches
+    Rails.cache.delete("series_#{series.id}_with_associations")
+    Rails.cache.delete("series_#{series.id}_image_url")
+    Rails.cache.delete("series_#{series.id}_image_url_v2")
+    Rails.cache.delete("series_#{series.id}_image_url_v3")
+    Rails.cache.delete("series_#{series.id}_image_url_v4")
+    Rails.cache.delete("series_#{series.id}_image_url_v5")
+    Rails.cache.delete("series_#{series.id}_total_episodes")
+    
+    # Clear view fragment caches
+    Rails.cache.delete("series_#{series.id}_show_v2")
+    
+    # Clear ActiveStorage blob URL caches if image is attached
+    if series.img.attached?
+      Rails.cache.delete_matched("blob_url_#{series.img.key}_*")
+    end
+    
+    # Clear paginated episode caches
     total_pages = (series.movies.count / 8.0).ceil
     (1..[total_pages, 1].max).each do |page|
-      Rails.cache.delete([series, page])
+      Rails.cache.delete("series_#{series.id}_episodes_page_#{page}")
+      Rails.cache.delete("series_#{series.id}_episodes_page_#{page}_v2")
+      Rails.cache.delete("series_#{series.id}_episodes_page_#{page}_v3")
     end
   end
 
-  # Expire index cache for current and two adjacent pages
+  # Expire index cache for current and adjacent pages
   def expire_series_index_cache
-    # Try to expire for first 5 pages (or more if needed)
-    (1..5).each do |page|
+    # Clear series count cache
+    Rails.cache.delete("series_total_count")
+    
+    # Clear cached pagination data
+    (1..10).each do |page|
       Rails.cache.delete(["series_index", page])
+      Rails.cache.delete(["series_index_ids", page])
     end
   end
 
