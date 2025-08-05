@@ -245,16 +245,9 @@
                 <div class="tag-admin-card">
                   <%= link_to tag.name, tag_path(tag), class: 'tag-name d-block' %>
                   <div class="tag-description">
-                    <%= tag.description.present? ? truncate(tag.description, length: 100) : "No description available" %>
+                    <%= tag_description_preview(tag) %>
                   </div>
-                  <div class="tag-actions">
-                    <% if current_user&.admin? %>
-                      <%= link_to 'Edit', edit_tag_path(tag), class: 'admin-btn admin-btn-edit' %>
-                      <%= link_to 'Delete', tag_path(tag), method: :delete, 
-                          data: { confirm: 'Are you sure you want to delete this tag?' }, 
-                          class: 'admin-btn admin-btn-delete' %>
-                    <% end %>
-                  </div>
+                  <%= admin_tag_actions(tag) %>
                 </div>
               <% end %>
             </div>

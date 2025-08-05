@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_05_025551) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_05_094521) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -87,7 +87,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_05_025551) do
 
   create_table "payments", force: :cascade do |t|
     t.integer "user_id", null: false
-    t.integer "amount"
+    t.decimal "amount", precision: 10, scale: 2
     t.string "currency", default: "usd", null: false
     t.string "status"
     t.string "stripe_charge_id"
@@ -134,6 +134,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_05_025551) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "description"
+    t.index ["created_at"], name: "index_tags_on_created_at"
+    t.index ["name", "id"], name: "index_tags_on_name_and_id"
+    t.index ["name"], name: "index_tags_on_name"
+    t.index ["updated_at", "id"], name: "index_tags_on_updated_at_and_id"
+    t.index ["updated_at"], name: "index_tags_on_updated_at"
   end
 
   create_table "users", force: :cascade do |t|

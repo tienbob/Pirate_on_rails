@@ -11,20 +11,20 @@
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 style="color: #f1f5f9; font-family: 'Inter', sans-serif; margin: 0;">
               <i class="fas fa-users me-2"></i>
-              All Users (<%= @users.total_count if @users.respond_to?(:total_count) %>)
+              All Users (<%= @total_users %>)
             </h3>
             <div class="d-flex gap-2">
               <span class="role-badge admin">
                 <i class="fas fa-crown me-1"></i>
-                <%= User.where(role: 'admin').count %> Admins
+                <%= @admin_count %> Admins
               </span>
               <span class="role-badge pro">
                 <i class="fas fa-star me-1"></i>
-                <%= User.where(role: 'pro').count %> Pro
+                <%= @pro_count %> Pro
               </span>
               <span class="role-badge free">
                 <i class="fas fa-user me-1"></i>
-                <%= User.where(role: 'free').count %> Free
+                <%= @free_count %> Free
               </span>
             </div>
           </div>

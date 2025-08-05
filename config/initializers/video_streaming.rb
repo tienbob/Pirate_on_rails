@@ -33,14 +33,30 @@ Rails.application.configure do
   end
 end
 
-# Configure ActiveRecord for better memory management
+# Configure ActiveRecord for better memory management and SQLite performance
 Rails.application.config.after_initialize do
   ActiveRecord::Base.connection_pool.with_connection do |connection|
-    # Optimize database connection for video streaming
+    # Optimize database connection for video streaming and general performance
     if connection.adapter_name == "SQLite"
-      connection.execute("PRAGMA cache_size = 10000")
-      connection.execute("PRAGMA temp_store = memory")
-      connection.execute("PRAGMA mmap_size = 268435456") # 256MB mmap
+      # Memory and cache optimizations
+      connection.execute("PRAGMA cache_size = -64000")      # 64MB cache (negative = KB)
+      connection.execute("PRAGMA temp_store = memory")      # Store temp tables in memory
+      connection.execute("PRAGMA mmap_size = 536870912")    # 512MB mmap (doubled)
+      
+      # Performance optimizations
+      connection.execute("PRAGMA synchronous = NORMAL")     # Faster than FULL, safer than OFF
+      connection.execute("PRAGMA journal_mode = WAL")       # Write-Ahead Logging for better concurrency
+      connection.execute("PRAGMA wal_autocheckpoint = 1000") # Auto checkpoint every 1000 pages
+      connection.execute("PRAGMA wal_checkpoint(TRUNCATE)")  # Initial checkpoint
+      
+      # Query optimization
+      connection.execute("PRAGMA optimize")                 # Optimize query planner
+      connection.execute("PRAGMA auto_vacuum = INCREMENTAL") # Incremental auto vacuum
+      
+      # Connection pool optimizations
+      connection.execute("PRAGMA busy_timeout = 30000")     # 30 second timeout for locks
+      
+      Rails.logger.info "SQLite optimizations applied: WAL mode, 64MB cache, 512MB mmap"
     end
   end
 end

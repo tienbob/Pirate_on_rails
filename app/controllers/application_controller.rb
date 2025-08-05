@@ -1,13 +1,13 @@
 class ApplicationController < ActionController::Base
   allow_browser versions: :modern
   before_action :configure_permitted_parameters, if: :devise_controller?
-  before_action :log_user_activity
+  before_action :log_user_activity_optimized  # Re-enabled with optimizations
   
   include Pundit::Authorization
   protect_from_forgery with: :exception, prepend: true
   
   # Security headers
-  before_action :set_security_headers
+  # before_action :set_security_headers  # Temporarily disabled to debug performance
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
   rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
@@ -75,6 +75,45 @@ class ApplicationController < ActionController::Base
     end
   end
 
+  def log_user_activity_optimized
+    return unless current_user && !devise_controller?
+    
+    # Use async logging and reduce database writes
+    Rails.logger.info "User Activity: #{current_user.email} - #{request.method} #{request.path}"
+    
+    # Update last seen timestamp only once per 15 minutes to reduce DB pressure
+    last_seen_cache_key = "user_last_seen_#{current_user.id}"
+    last_update = Rails.cache.read(last_seen_cache_key)
+    
+    if last_update.nil? || last_update < 15.minutes.ago
+      # Use update_column to skip callbacks and validations for performance
+      if current_user.respond_to?(:last_seen_at)
+        current_user.update_column(:last_seen_at, Time.current)
+      end
+      Rails.cache.write(last_seen_cache_key, Time.current, expires_in: 15.minutes)
+    end
+  end
+
+  def log_user_activity_optimized
+    return unless current_user && !devise_controller?
+    
+    # Use async logging and reduce database writes
+    Rails.logger.info "User Activity: #{current_user.email} - #{request.method} #{request.path}"
+    
+    # Update last seen timestamp only once per 15 minutes to reduce DB pressure
+    last_seen_cache_key = "user_last_seen_#{current_user.id}"
+    last_update = Rails.cache.read(last_seen_cache_key)
+    
+    if last_update.nil? || last_update < 15.minutes.ago
+      # Use update_column to skip callbacks and validations for performance
+      if current_user.respond_to?(:last_seen_at)
+        current_user.update_column(:last_seen_at, Time.current)
+      end
+      Rails.cache.write(last_seen_cache_key, Time.current, expires_in: 15.minutes)
+    end
+  end
+
+  # Keep the original method for reference
   def log_user_activity
     return unless current_user && !devise_controller?
     

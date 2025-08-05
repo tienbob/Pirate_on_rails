@@ -1,3 +1,5 @@
+require 'ostruct'
+
 class PaymentsController < ApplicationController
   protect_from_forgery except: [:webhook]
   before_action :authenticate_user!, except: [:webhook, :success]
@@ -7,10 +9,49 @@ class PaymentsController < ApplicationController
 
   # Admin: List all payments
   def index
-    @payments = Payment.includes(:user)
-                      .order(created_at: :desc)
-                      .page(params[:page])
-                      .per(20)
+    page = params[:page] || 1
+    
+    # Cache the payment data to avoid serialization issues
+    cached_data = Rails.cache.fetch("payments_data_page_#{page}", expires_in: 2.minutes) do
+      # Get total count
+      total_count = Payment.count
+      
+      # Get paginated payment data with user info
+      offset = (page.to_i - 1) * 20
+      payments_data = Payment.joins(:user)
+                             .select('payments.id, payments.user_id, payments.amount, payments.status, payments.created_at, payments.updated_at, users.name as user_name, users.email as user_email')
+                             .order('payments.created_at DESC')
+                             .limit(20)
+                             .offset(offset)
+                             .map do |payment|
+        {
+          id: payment.id,
+          user_id: payment.user_id,
+          amount: payment.amount,
+          status: payment.status,
+          created_at: payment.created_at,
+          updated_at: payment.updated_at,
+          user_name: payment.user_name,
+          user_email: payment.user_email
+        }
+      end
+      
+      { payments: payments_data, total_count: total_count, page: page.to_i, per_page: 20 }
+    end
+    
+    # Recreate payments with user data as OpenStruct
+    @payments = Kaminari.paginate_array(
+      cached_data[:payments].map do |payment_data|
+        payment = OpenStruct.new(payment_data)
+        # Add a user object for view compatibility
+        payment.user = OpenStruct.new(
+          name: payment_data[:user_name],
+          email: payment_data[:user_email]
+        )
+        payment
+      end,
+      total_count: cached_data[:total_count]
+    ).page(cached_data[:page]).per(cached_data[:per_page])
   end
 
   # Show payment details (admin or payment owner)
@@ -31,6 +72,8 @@ class PaymentsController < ApplicationController
     @payment = Payment.new(payment_params)
     
     if @payment.save
+      # Clear payments cache when new payment is created
+      Rails.cache.delete_matched("payments_data_page_*")
       redirect_to @payment, notice: 'Payment was successfully created.'
     else
       render :new, status: :unprocessable_entity
@@ -171,6 +214,9 @@ class PaymentsController < ApplicationController
       else
         Rails.logger.info "Unhandled webhook event: #{event.type}"
       end
+      
+      # Clear payments cache after any webhook that might create/update payments
+      Rails.cache.delete_matched("payments_data_page_*")
     end
 
     render json: { status: 'success' }

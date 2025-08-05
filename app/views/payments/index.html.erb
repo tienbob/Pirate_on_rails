@@ -1,66 +1,160 @@
+<%= stylesheet_link_tag 'cinema_payments', media: 'all' %>
+
 <% if current_user&.admin? %>
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-10">
-      <div class="card border-0 shadow-lg rounded-4 bg-dark text-light">
-        <div class="card-body">
-          <h2 class="fw-bold mb-4 text-center" style="background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Payment Records</h2>
-          <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 text-light">
-              <thead style="background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%); color: #fff;">
-                <tr>
-                  <th>ID</th>
-                  <th>User</th>
-                  <th>Email</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% @payments.each do |payment| %>
-                  <tr>
-                    <td><%= payment.id %></td>
-                    <td><%= payment.user&.name || 'N/A' %></td>
-                    <td><%= payment.user&.email || 'N/A' %></td>
-                    <td><span class="badge bg-success"><%= number_to_currency(payment.amount) %></span></td>
-                    <td>
-                      <% status_class = case payment.status
-                        when 'completed' then 'bg-gradient text-white'
-                        when 'pending' then 'bg-warning text-dark'
-                        when 'failed' then 'bg-danger text-white'
-                        else 'bg-secondary text-white'
-                      end %>
-                      <span class="badge <%= status_class %>"><%= payment.status.capitalize %></span>
-                    </td>
-                    <td><%= payment.created_at.strftime('%Y-%m-%d %H:%M') %></td>
-                  </tr>
+  <div class="payments-admin-section">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-12 col-xl-11">
+          <div class="payments-dashboard-card">
+            <!-- Header -->
+            <div class="payments-header">
+              <h1 class="payments-title">Payment Dashboard</h1>
+              <p class="payments-subtitle">Admin Control Center • Financial Overview</p>
+            </div>
+            
+            <!-- Statistics -->
+            <div class="payments-stats">
+              <div class="stat-card">
+                <div class="stat-value"><%= @payments.respond_to?(:total_count) ? @payments.total_count : @payments.size %></div>
+                <div class="stat-label">Total Payments</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value" style="color: #10b981;">
+                  <%= number_to_currency(@payments.select { |p| p.status == 'completed' }.sum(&:amount) || 0) %>
+                </div>
+                <div class="stat-label">Completed Revenue</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value" style="color: #f59e0b;">
+                  <%= @payments.count { |p| p.status == 'pending' } %>
+                </div>
+                <div class="stat-label">Pending Payments</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-value" style="color: #ef4444;">
+                  <%= @payments.count { |p| p.status == 'failed' } %>
+                </div>
+                <div class="stat-label">Failed Payments</div>
+              </div>
+            </div>
+            
+            <!-- Table -->
+            <div class="payments-table-container">
+              <% if @payments.any? %>
+                <div class="payments-table">
+                  <table class="table table-hover align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th><i class="fas fa-hashtag me-2"></i>ID</th>
+                        <th><i class="fas fa-user me-2"></i>Customer</th>
+                        <th><i class="fas fa-dollar-sign me-2"></i>Amount</th>
+                        <th><i class="fas fa-check-circle me-2"></i>Status</th>
+                        <th><i class="fas fa-calendar me-2"></i>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% @payments.each do |payment| %>
+                        <tr>
+                          <td data-label="ID">
+                            <span class="payment-id">#<%= payment.id %></span>
+                          </td>
+                          <td data-label="Customer">
+                            <div class="payment-user">
+                              <div class="user-avatar">
+                                <%= (payment.user&.name&.first || payment.user&.email&.first || 'U').upcase %>
+                              </div>
+                              <div class="user-info">
+                                <h6><%= payment.user&.name || 'Unknown User' %></h6>
+                                <p><%= truncate(payment.user&.email || 'No email', length: 25) %></p>
+                              </div>
+                            </div>
+                          </td>
+                          <td data-label="Amount">
+                            <span class="payment-amount"><%= number_to_currency(payment.amount) %></span>
+                          </td>
+                          <td data-label="Status">
+                            <% 
+                              status_class = case payment.status
+                                when 'completed' then 'status-completed'
+                                when 'pending' then 'status-pending'
+                                when 'failed' then 'status-failed'
+                                else 'status-default'
+                              end
+                            %>
+                            <span class="status-badge <%= status_class %>">
+                              <% case payment.status
+                                when 'completed' %>
+                                  <i class="fas fa-check me-1"></i>Completed
+                                <% when 'pending' %>
+                                  <i class="fas fa-clock me-1"></i>Pending
+                                <% when 'failed' %>
+                                  <i class="fas fa-times me-1"></i>Failed
+                                <% else %>
+                                  <i class="fas fa-question me-1"></i><%= payment.status.capitalize %>
+                              <% end %>
+                            </span>
+                          </td>
+                          <td data-label="Date">
+                            <div class="payment-date">
+                              <div><%= payment.created_at.strftime('%b %d, %Y') %></div>
+                              <small style="color: #64748b;"><%= payment.created_at.strftime('%I:%M %p') %></small>
+                            </div>
+                          </td>
+                        </tr>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+              <% else %>
+                <div class="empty-state">
+                  <div class="empty-state-icon">
+                    <i class="fas fa-receipt"></i>
+                  </div>
+                  <h3>No Payments Yet</h3>
+                  <p>Payment records will appear here once transactions are processed.</p>
+                </div>
+              <% end %>
+            </div>
+            
+            <!-- Footer -->
+            <div class="payments-footer">
+              <div class="payments-actions">
+                <%= link_to movies_path, class: 'payment-btn payment-btn-secondary' do %>
+                  <i class="fas fa-arrow-left"></i>
+                  Back to Movies
                 <% end %>
-              </tbody>
-            </table>
-          </div>
-          <div class="mt-4">
-            <%= paginate @payments %>
+                
+                <% if @payments.respond_to?(:current_page) %>
+                  <div class="d-flex justify-content-center">
+                    <%= paginate @payments %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 <% else %>
-  <div class="container py-5 text-center">
-    <h2>Access Denied</h2>
-    <p>You are not authorized to view this page.</p>
-  </div>
-<% end %>
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-10 text-center">
+  <div class="access-denied-section">
+    <div class="access-denied-card">
+      <div class="access-denied-icon">
+        <i class="fas fa-shield-alt"></i>
+      </div>
+      <h2 class="access-denied-title">Access Restricted</h2>
+      <p class="access-denied-text">This payment dashboard is reserved for administrators only. Please contact support if you believe this is an error.</p>
       <% if current_user && !current_user.admin? && !current_user.pro? %>
-        <%= link_to 'Upgrade to Pro', upgrade_payment_path, class: 'btn btn-gradient btn-lg' %>
+        <%= link_to upgrade_payment_path, class: 'payment-btn payment-btn-primary' do %>
+          <i class="fas fa-star"></i>
+          Upgrade to Pro
+        <% end %>
       <% else %>
-        <%= link_to 'Back to Series', series_index_path, class: 'btn btn-secondary btn-lg' %>
+        <%= link_to series_index_path, class: 'payment-btn payment-btn-secondary' do %>
+          <i class="fas fa-arrow-left"></i>
+          Back to Series
+        <% end %>
       <% end %>
     </div>
   </div>
-</div>
+<% end %>
