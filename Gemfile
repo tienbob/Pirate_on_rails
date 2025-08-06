@@ -59,7 +59,7 @@ gem "pry-rails", "~> 0.3.9"
 gem "nokogiri", "~> 1.12"
 
 # Use Faraday for HTTP requests [https://lostisland.github.io/faraday/]
-gem "faraday", "~> 1.0"
+gem "faraday", "~> 2.13"
 
 # Use Kaminari for pagination 
 gem "kaminari", "~> 1.2"
