@@ -4,7 +4,7 @@
 */
 
 .movie-form-section {
-  background: linear-gradient(135deg, #060D1E 0%, #11182D 25%, #1E3A8A 75%, #3B82F6 100%);
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
   min-height: 100vh;
   display: flex;
   align-items: center;
@@ -12,7 +12,7 @@
 }
 
 .movie-form-card {
-  background: rgba(15, 23, 42, 0.9);
+  background: rgba(15, 23, 42, 0.9) !important;
   backdrop-filter: blur(20px);
   border: 1px solid rgba(148, 163, 184, 0.1);
   border-radius: 24px;

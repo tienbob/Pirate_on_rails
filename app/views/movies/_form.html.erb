@@ -6,7 +6,7 @@
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-lg-8">
-        <div class="form-card">
+        <div class="form-card ">
           <%= form_with(model: movie, local: true, html: { multipart: true, class: 'movie-form' }) do |form| %>
             <% if movie.errors.any? %>
               <div class="error-alert">
