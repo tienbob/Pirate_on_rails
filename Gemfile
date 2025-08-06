@@ -38,7 +38,7 @@ gem "thruster", require: false
 gem 'whenever', require: false
 
 # Use Redis for caching and background jobs [https://redis.io/]
-gem "redis", "~> 4.0"
+gem "redis", "~> 5.4"
 
 # Use Sidekiq for background processing [https://sidekiq.org]
 gem "sidekiq", "~> 6.0"
