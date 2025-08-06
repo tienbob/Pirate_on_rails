@@ -41,9 +41,10 @@
 
 .series-poster {
   width: 100%;
-  height: auto;
-  max-height: 400px;
-  object-fit: cover;
+  height: 400px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   border-radius: 16px;
 }
 
@@ -208,17 +209,10 @@
   position: relative;
   height: 180px;
   overflow: hidden;
-}
-
-.episode-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.episode-card:hover .episode-image img {
-  transform: scale(1.05);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 12px 12px 0 0;
 }
 
 .episode-placeholder {

@@ -5,17 +5,27 @@ class PaymentsController < ApplicationController
   before_action :authenticate_user!, except: [:webhook, :success]
   before_action :require_admin, only: [:index, :new, :create]
   before_action :set_payment, only: [:show]
-  before_action :check_rate_limit, except: [:webhook, :success, :manage_subscription, :cancel_subscription]
+  before_action :check_rate_limit, except: [:webhook, :success, :manage_subscription, :cancel_subscription, :index, :show]
 
   # Admin: List all payments
   def index
     # Cache expensive payment statistics calculation
-    @payment_stats = Rails.cache.fetch("payment_stats_v1", expires_in: 5.minutes) do
-      stats = Payment.group(:status).count
-      completed_revenue = Payment.where(status: 'completed').sum(:amount) || 0
+    @payment_stats = Rails.cache.fetch("payment_stats_v2", expires_in: 5.minutes) do
+      # Use a single query with proper aggregation
+      stats_data = Payment.group(:status).pluck(:status, Arel.sql('COUNT(*)'), Arel.sql('SUM(amount)'))
+      
+      stats = {}
+      total_count = 0
+      completed_revenue = 0
+      
+      stats_data.each do |status, count, sum_amount|
+        stats[status] = count
+        total_count += count
+        completed_revenue += sum_amount.to_f if status == 'completed'
+      end
       
       {
-        total: Payment.count,
+        total: total_count,
         completed_revenue: completed_revenue,
         pending_count: stats['pending'] || 0,
         failed_count: stats['failed'] || 0,
@@ -23,8 +33,11 @@ class PaymentsController < ApplicationController
       }
     end
 
-    # Paginate payments
-    @payments = Payment.order(created_at: :desc).includes(:user).page(params[:page]).per(20)
+    # Optimized payment loading with proper includes and ordering
+    @payments = Payment.includes(:user)
+                      .order(created_at: :desc)
+                      .page(params[:page])
+                      .per(20)
   end
 
   # Show payment details (admin or payment owner)

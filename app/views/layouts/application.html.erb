@@ -123,7 +123,7 @@
     <%= javascript_importmap_tags %>
     
     <!-- Performance Optimization Scripts (loaded once with defer) -->
-    <%= javascript_include_tag 'input_optimization', 'scroll_optimization', defer: true %>
+    <%= javascript_include_tag 'input_optimization', 'scroll_optimization', 'series_image_cache', defer: true %>
     
     <!-- Preload key images -->
     <% if content_for?(:preload_images) %>

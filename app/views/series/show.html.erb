@@ -8,6 +8,12 @@
 <% end %>
 
 <% cache("series_#{@series.id}_show_v2", expires_in: 30.minutes) do %>
+<% 
+  # Create static image URL to prevent repeated backend calls
+  cached_series_image_url = Rails.cache.fetch("series_static_url_#{@series.id}_v4", expires_in: 24.hours) do
+    series_static_image_url(@series)
+  end
+%>
 <div class="series-hero-section">
   <div class="container">
     <div class="row justify-content-center">
@@ -16,9 +22,11 @@
           <div class="row align-items-start">
             <div class="col-lg-4 mb-4 mb-lg-0">
               <div class="series-poster-container">
-                <%= image_tag series_image_url(@series), 
-                    class: "series-poster", 
-                    alt: @series.title %>
+                <div class="series-poster" 
+                     style="background-image: url('<%= cached_series_image_url %>');"
+                     role="img" 
+                     aria-label="<%= @series.title %>">
+                </div>
               </div>
             </div>
             
@@ -71,10 +79,10 @@
               <% @episodes.each do |movie| %>
                 <div class="col-md-6 col-xl-4">
                   <div class="episode-card">
-                    <div class="episode-image">
-                      <%= image_tag series_image_url(@series), 
-                          alt: @series.title, 
-                          loading: "lazy" %>
+                    <div class="episode-image" 
+                         style="background-image: url('<%= cached_series_image_url %>');"
+                         role="img" 
+                         aria-label="<%= @series.title %>">
                     </div>
                     
                     <div class="episode-body">

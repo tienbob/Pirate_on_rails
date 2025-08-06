@@ -1,4 +1,14 @@
 module SeriesHelper
+  # Generate truly static image URL that doesn't change on each request
+  def series_static_image_url(series)
+    return asset_url('series/default.JPG') unless series.img.attached?
+    
+    blob = series.img.blob
+    # Generate permanent disk storage URL without expiration
+    encoded_key = ActiveStorage.verifier.generate(blob.key, expires_in: nil)
+    "/rails/active_storage/disk/#{encoded_key}/#{blob.filename}"
+  end
+  
   # Efficiently get series image URL with caching and fallback
   def series_image_url(series, variant: :medium)
     # Don't cache signed URLs since they expire - only cache the attachment status
@@ -25,6 +35,18 @@ module SeriesHelper
       series.img
     else
       asset_url('series/default.JPG')
+    end
+  end
+
+  # Generate a static image URL that doesn't expire
+  def series_static_image_url(series)
+    if series.img.attached?
+      # Use rails_blob_path but with a very long expiration to minimize regeneration
+      blob = series.img.blob
+      # Generate URL with 10 year expiration to make it essentially permanent
+      rails_blob_path(blob, expires_in: 10.years, disposition: 'inline')
+    else
+      ActionController::Base.helpers.asset_url('series/default.JPG')
     end
   end
 end
