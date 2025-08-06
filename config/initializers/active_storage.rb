@@ -22,24 +22,28 @@ Rails.application.configure do
         expires_in 1.hour, public: true
         response.headers['Vary'] = 'Accept'
         response.headers['Cache-Control'] = 'public, max-age=3600'
+        response.headers['X-Accel-Buffering'] = 'no'  # Disable nginx buffering for large files
       end
     end
   end
 end
 
-# Optimize ActiveStorage URL generation
+# Optimize ActiveStorage URL generation with intelligent caching
+# Temporarily disabled URL caching to avoid expiration issues
 Rails.application.config.after_initialize do
-  # Cache ActiveStorage blob URLs for better performance
-  ActiveStorage::Blob.class_eval do
-    def url_with_cache(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline, filename: nil, **options)
-      cache_key = "blob_url_#{key}_#{disposition}_#{filename}_#{expires_in}"
-      
-      Rails.cache.fetch(cache_key, expires_in: [expires_in / 2, 10.minutes].min) do
-        url_without_cache(expires_in: expires_in, disposition: disposition, filename: filename, **options)
+  # Optimize variant processing for images only
+  if defined?(ActiveStorage::Variant)
+    ActiveStorage::Variant.class_eval do
+      def processed_with_cache
+        cache_key = "variant_processed_#{variation.key}_#{blob.checksum}"
+        
+        Rails.cache.fetch(cache_key, expires_in: 1.hour) do
+          processed_without_cache
+        end
       end
+      
+      alias_method :processed_without_cache, :processed
+      alias_method :processed, :processed_with_cache
     end
-    
-    alias_method :url_without_cache, :url
-    alias_method :url, :url_with_cache
   end
 end

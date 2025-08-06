@@ -24,7 +24,7 @@ Rails.application.configure do
   end
 end
 
-# Optimize ActiveRecord settings
-ActiveRecord::Base.connection.execute("PRAGMA journal_mode=WAL") if Rails.env.development?
-ActiveRecord::Base.connection.execute("PRAGMA synchronous=NORMAL") if Rails.env.development?
-ActiveRecord::Base.connection.execute("PRAGMA cache_size=10000") if Rails.env.development?
+# SQLite optimizations are now handled in sqlite_optimizations.rb to avoid conflicts
+# ActiveRecord::Base.connection.execute("PRAGMA journal_mode=WAL") if Rails.env.development?
+# ActiveRecord::Base.connection.execute("PRAGMA synchronous=NORMAL") if Rails.env.development?
+# ActiveRecord::Base.connection.execute("PRAGMA cache_size=10000") if Rails.env.development?

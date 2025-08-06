@@ -1,9 +1,4 @@
 <% content_for :head do %>
-  <!-- Preload critical assets -->
-  <%= preload_link_tag asset_path('cinema_series_show.css'), as: :style %>
-  <%= preload_link_tag asset_path('input_optimization.js'), as: :script %>
-  <%= preload_link_tag asset_path('scroll_optimization.js'), as: :script %>
-  
   <!-- External fonts with display swap -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -76,11 +71,11 @@
               <% @episodes.each do |movie| %>
                 <div class="col-md-6 col-xl-4">
                   <div class="episode-card">
-                    <%= link_to movie_path(movie), class: "episode-image" do %>
+                    <div class="episode-image">
                       <%= image_tag series_image_url(@series), 
                           alt: @series.title, 
                           loading: "lazy" %>
-                    <% end %>
+                    </div>
                     
                     <div class="episode-body">
                       <h5 class="episode-title"><%= movie.title %></h5>

@@ -53,12 +53,6 @@ gem "stripe", "~> 5.0"
 # Use Devise for user authentication 
 gem "devise", "~> 4.8"
 
-# Use FactoryBot for test data generation 
-gem "factory_bot_rails", "~> 6.0"
-
-# Use Faker for generating fake data in tests 
-gem "faker", "~> 2.0"
-
 # Use RuboCop for code linting and formatting [https://rubocop.org]
 gem "rubocop", "~> 1.0"
 
@@ -86,12 +80,6 @@ gem "rack-cors", "~> 1.1"
 # Use Mailgun for email delivery [https://www.mailgun.com]
 gem "mailgun-ruby", "~> 1.2"
 
-# Use Sentry for error tracking and performance monitoring [https://sentry.io]
-gem "sentry-rails", "~> 4.0"
-
-# Use Rollbar for error tracking [https://rollbar.com]
-gem "rollbar", "~> 3.0"
-
 gem "fiddle"
 # Use Elasticsearch for search functionality [https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html]
 gem "elasticsearch-model"
@@ -103,12 +91,6 @@ gem 'dotenv-rails'
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
-
-  # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
-  gem "brakeman", require: false
-
-  # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
-  gem "rubocop-rails-omakase", require: false
 
   gem "sqlite3"
 

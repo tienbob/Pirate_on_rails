@@ -16,7 +16,9 @@
       </label>
       <div class="tags-container-series" data-series-target="tagSelect">
         <% selected_tags = params[:tags] || [] %>
-        <% Tag.all.each do |tag| %>
+        <% # Cache the tags to avoid repeated queries %>
+        <% cached_tags = Rails.cache.fetch("all_tags_for_search", expires_in: 30.minutes) { Tag.select(:id, :name).order(:name).to_a } %>
+        <% cached_tags.each do |tag| %>
           <span class="tag-option-series <%= 'selected' if selected_tags.include?(tag.name) %>" 
                 data-tag="<%= tag.name %>">
             <%= tag.name %>

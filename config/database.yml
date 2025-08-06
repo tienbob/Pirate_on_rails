@@ -16,10 +16,23 @@ production:
     adapter: postgresql
     encoding: unicode
     database: pirate_on_rails_production
-    username: pirate_on_rails
-    password: <%= ENV["PIRATE_ON_RAILS_DATABASE_PASSWORD"] %>
-    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    username: pirate_user
+    password: <%= ENV["POSTGRES_PASSWORD"] || "your_secure_password_here" %>
+    host: <%= ENV["POSTGRES_HOST"] || "localhost" %>
+    port: <%= ENV["POSTGRES_PORT"] || 5432 %>
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 20 } %>
     timeout: 5000
+    connect_timeout: 5
+    checkout_timeout: 5
+    variables:
+      statement_timeout: 30s
+      lock_timeout: 10s
+    # Performance optimizations
+    prepared_statements: true
+    advisory_locks: true
+    # Connection pool settings
+    reaping_frequency: 10
+    dead_connection_timeout: 30
   cache:
     <<: *primary_production
     database: pirate_on_rails_production_cache

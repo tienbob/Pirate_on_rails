@@ -39,7 +39,7 @@ class SeriesController < ApplicationController
       # Initialize empty hash for image URLs - we'll populate in the view as needed
       @series_image_urls = {}
     else
-      # Use optimized queries with proper eager loading
+      # Use optimized queries - REMOVED expensive eager loading of all movies
       series_scope = policy_scope(Series.all)
       
       # Cache total count separately to avoid N+1 queries
@@ -47,9 +47,9 @@ class SeriesController < ApplicationController
         series_scope.count
       end
       
-      # Get paginated series with proper eager loading
+      # Get paginated series with minimal eager loading (only tags, not movies)
       @series = series_scope
-        .includes(:tags, movies: [:tags])
+        .includes(:tags)  # Only load tags, not movies
         .order(updated_at: :desc)
         .page(page)
         .per(per_page)
@@ -63,10 +63,10 @@ class SeriesController < ApplicationController
   end
 
   def show
-    # Use cached query to avoid repeated database hits
-    cache_key = "series_#{params[:id]}_with_associations"
+    # Use cached query to avoid repeated database hits - simplified includes
+    cache_key = "series_#{params[:id]}_with_tags_only"
     @series = Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
-      Series.includes(:tags, movies: [:tags]).find(params[:id])
+      Series.includes(:tags).find(params[:id])  # Removed movies eager loading
     end
     
     # Optimize episodes query with cached pagination data
@@ -79,10 +79,10 @@ class SeriesController < ApplicationController
       @series.movies.count
     end
     
-    # Get paginated episodes efficiently - simplified approach
+    # Get paginated episodes efficiently - minimal includes
     episodes_start = Time.current
     @episodes = @series.movies
-      .includes(:tags)
+      .select(:id, :title, :description, :release_date, :is_pro, :series_id)  # Select only needed columns
       .order(:release_date)
       .page(page)
       .per(per_page)
@@ -149,8 +149,9 @@ class SeriesController < ApplicationController
     # Clear series count cache
     Rails.cache.delete("series_total_count")
     
-    # Clear series-specific caches
-    Rails.cache.delete("series_#{series.id}_with_associations")
+    # Clear series-specific caches (updated cache key)
+    Rails.cache.delete("series_#{series.id}_with_tags_only")
+    Rails.cache.delete("series_#{series.id}_with_associations")  # Keep for backward compatibility
     Rails.cache.delete("series_#{series.id}_image_url")
     Rails.cache.delete("series_#{series.id}_image_url_v2")
     Rails.cache.delete("series_#{series.id}_image_url_v3")
@@ -166,8 +167,9 @@ class SeriesController < ApplicationController
       Rails.cache.delete_matched("blob_url_#{series.img.key}_*")
     end
     
-    # Clear paginated episode caches
-    total_pages = (series.movies.count / 8.0).ceil
+    # Clear paginated episode caches (use cached count to avoid DB query)
+    cached_count = Rails.cache.read("series_#{series.id}_total_episodes") || 0
+    total_pages = (cached_count / 8.0).ceil
     (1..[total_pages, 1].max).each do |page|
       Rails.cache.delete("series_#{series.id}_episodes_page_#{page}")
       Rails.cache.delete("series_#{series.id}_episodes_page_#{page}_v2")

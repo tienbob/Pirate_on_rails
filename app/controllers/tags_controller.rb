@@ -64,6 +64,7 @@ class TagsController < ApplicationController
     if @tag.save
       # Clear cache after creating a new tag
       Rails.cache.delete_matched("tags_data_page_*")
+      Rails.cache.delete("all_tags_for_search")  # Clear search form cache
       redirect_to @tag, notice: 'Tag was successfully created.'
     else
       render :new
@@ -79,6 +80,7 @@ class TagsController < ApplicationController
     if @tag.update(tag_params)
       # Clear cache after updating a tag
       Rails.cache.delete_matched("tags_data_page_*")
+      Rails.cache.delete("all_tags_for_search")  # Clear search form cache
       redirect_to @tag, notice: 'Tag was successfully updated.'
     else
       render :edit
@@ -90,6 +92,7 @@ class TagsController < ApplicationController
     @tag.destroy
     # Clear cache after deleting a tag
     Rails.cache.delete_matched("tags_data_page_*")
+    Rails.cache.delete("all_tags_for_search")  # Clear search form cache
     redirect_to tags_path, notice: 'Tag was successfully deleted.'
   end
 

@@ -1,7 +1,8 @@
 class ApplicationController < ActionController::Base
   allow_browser versions: :modern
   before_action :configure_permitted_parameters, if: :devise_controller?
-  before_action :log_user_activity_optimized  # Re-enabled with optimizations
+  # Temporarily disabled for performance debugging
+  # before_action :log_user_activity_optimized
   
   include Pundit::Authorization
   protect_from_forgery with: :exception, prepend: true
@@ -12,6 +13,27 @@ class ApplicationController < ActionController::Base
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
   rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
   rescue_from StandardError, with: :handle_standard_error unless Rails.env.development? || Rails.env.test?
+
+  # Health check endpoint for Docker and monitoring
+  def health
+    # Basic health checks
+    checks = {
+      database: database_healthy?,
+      redis: redis_healthy?,
+      storage: storage_healthy?
+    }
+    
+    all_healthy = checks.values.all?
+    
+    status = all_healthy ? :ok : :service_unavailable
+    
+    render json: {
+      status: all_healthy ? 'healthy' : 'unhealthy',
+      timestamp: Time.current.iso8601,
+      checks: checks,
+      version: Rails.application.config.version || 'unknown'
+    }, status: status
+  end
 
   private
 
@@ -72,25 +94,6 @@ class ApplicationController < ActionController::Base
         "connect-src 'self' https://api.stripe.com",
         "frame-src https://js.stripe.com"
       ].join('; ')
-    end
-  end
-
-  def log_user_activity_optimized
-    return unless current_user && !devise_controller?
-    
-    # Use async logging and reduce database writes
-    Rails.logger.info "User Activity: #{current_user.email} - #{request.method} #{request.path}"
-    
-    # Update last seen timestamp only once per 15 minutes to reduce DB pressure
-    last_seen_cache_key = "user_last_seen_#{current_user.id}"
-    last_update = Rails.cache.read(last_seen_cache_key)
-    
-    if last_update.nil? || last_update < 15.minutes.ago
-      # Use update_column to skip callbacks and validations for performance
-      if current_user.respond_to?(:last_seen_at)
-        current_user.update_column(:last_seen_at, Time.current)
-      end
-      Rails.cache.write(last_seen_cache_key, Time.current, expires_in: 15.minutes)
     end
   end
 
@@ -240,5 +243,32 @@ class ApplicationController < ActionController::Base
       Rails.logger.error "Unexpected error fetching subscription info for user #{user.email}: #{e.message}"
       nil
     end
+  end
+
+  # Health check methods for Docker/monitoring
+  def database_healthy?
+    ActiveRecord::Base.connection.execute('SELECT 1')
+    true
+  rescue StandardError => e
+    Rails.logger.error "Database health check failed: #{e.message}"
+    false
+  end
+
+  def redis_healthy?
+    return true unless defined?(Redis) # Skip if Redis not configured
+    
+    Redis.new(url: ENV['REDIS_URL'] || 'redis://localhost:6379/0').ping == 'PONG'
+  rescue StandardError => e
+    Rails.logger.error "Redis health check failed: #{e.message}"
+    false
+  end
+
+  def storage_healthy?
+    # Check if storage directory is writable
+    storage_path = Rails.root.join('storage')
+    storage_path.exist? && storage_path.writable?
+  rescue StandardError => e
+    Rails.logger.error "Storage health check failed: #{e.message}"
+    false
   end
 end

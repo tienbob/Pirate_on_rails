@@ -21,8 +21,8 @@ Rails.application.configure do
   config.active_storage.variant_processor = :mini_magick
   config.active_storage.precompile_assets = false
 
-  # Database query optimization
-  config.active_record.strict_loading_by_default = true if Rails.env.development?
+  # Database query optimization - disabled for performance
+  # config.active_record.strict_loading_by_default = true if Rails.env.development?
   
   # Background job configuration
   config.active_job.queue_adapter = :sidekiq if defined?(Sidekiq)

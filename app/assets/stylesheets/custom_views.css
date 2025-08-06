@@ -32,7 +32,7 @@ body.anime-bg {
 /* Tags specific backgrounds */
 body.bg-tags {
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%),
-              url('https://images.unsplash.com/photo-1489599273718-e8d72ebdcded?ixlib=rb-4.0.3&auto=format&fit=crop&w=2069&q=80') center/cover no-repeat fixed;
+                no-repeat fixed;
   min-height: 100vh;
   color: #fff;
   font-family: 'Inter', sans-serif;

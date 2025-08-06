@@ -38,14 +38,14 @@ class AssetOptimizationMiddleware
       headers['Cache-Control'] = 'public, max-age=31536000, immutable' # 1 year
     end
     
-    # Add preload hints for critical resources
-    if env['PATH_INFO'] == '/' || env['PATH_INFO'].include?('/movies')
-      link_header = [
-        '</assets/cinema_bundle.css>; rel=preload; as=style',
-        '</assets/application.js>; rel=preload; as=script'
-      ].join(', ')
-      headers['Link'] = link_header
-    end
+    # Temporarily disable preload hints to fix browser warnings
+    # if env['PATH_INFO'] == '/' || env['PATH_INFO'].include?('/movies')
+    #   link_header = [
+    #     '</assets/cinema_bundle.css>; rel=preload; as=style',
+    #     '</assets/application.js>; rel=preload; as=script'
+    #   ].join(', ')
+    #   headers['Link'] = link_header
+    # end
     
     [status, headers, response]
   end

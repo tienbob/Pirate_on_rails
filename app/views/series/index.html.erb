@@ -15,7 +15,7 @@
 
     <% if current_user&.admin? %>
       <div class="text-center mb-4">
-        <%= link_to 'New Series', new_series_path, class: 'btn btn-gradient' %>
+        <%= link_to 'New Series', new_series_path, class: 'btn btn-primary text-white', data: { turbo_frame: '_top' } %>
       </div>
     <% end %>
 

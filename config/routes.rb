@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  # Health check endpoint for Docker and load balancers
+  get '/health', to: 'application#health'
+  
   resources :series
   # PWA files
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest

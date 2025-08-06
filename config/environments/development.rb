@@ -34,12 +34,13 @@ Rails.application.configure do
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
   
-  # ActiveStorage performance optimizations
+  # ActiveStorage performance optimizations for development
   config.active_storage.variant_processor = :mini_magick
+  # Use redirect to avoid signed URL expiration issues that cause 404s
   config.active_storage.resolve_model_to_route = :rails_storage_redirect
   
-  # Enable ActiveStorage URL caching for better performance
-  config.active_storage.track_variants = true
+  # Disable variant tracking in development for better performance
+  config.active_storage.track_variants = false
   
   # Video streaming optimizations to prevent memory issues
   config.active_storage.video_preview_arguments = "-y -vframes 1 -f image2"
@@ -62,11 +63,9 @@ Rails.application.configure do
   # Raise an error on page load if there are pending migrations.
   config.active_record.migration_error = :page_load
 
-  # Highlight code that triggered database queries in logs.
-  config.active_record.verbose_query_logs = true
-
-  # Append comments with runtime information tags to SQL queries in logs.
-  config.active_record.query_log_tags_enabled = true
+  # Temporarily disable verbose logging for performance debugging
+  # config.active_record.verbose_query_logs = true
+  # config.active_record.query_log_tags_enabled = true
 
   # Highlight code that enqueued background job in logs.
   config.active_job.verbose_enqueue_logs = true

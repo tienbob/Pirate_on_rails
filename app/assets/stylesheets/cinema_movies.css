@@ -1,7 +1,7 @@
 /* --- Cinema Movies Styles --- */
 .movies-gallery-section {
   background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%),
-              url('https://images.unsplash.com/photo-1489599273718-e8d72ebdcded?ixlib=rb-4.0.3&auto=format&fit=crop&w=2069&q=80') center/cover;
+               ;
   min-height: 100vh;
   padding: 4rem 0;
   position: relative;

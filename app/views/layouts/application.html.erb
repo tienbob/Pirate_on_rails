@@ -109,7 +109,9 @@
 
     <%= yield :head %>
     <%= javascript_importmap_tags %>
-    <%= javascript_include_tag 'input_optimization', defer: true %>
+    
+    <!-- Performance Optimization Scripts (loaded once with defer) -->
+    <%= javascript_include_tag 'input_optimization', 'scroll_optimization', defer: true %>
     
     <!-- Preload key images -->
     <% if content_for?(:preload_images) %>
@@ -172,10 +174,6 @@
         </button>
       </div>
     <% end %>
-    
-    <!-- Performance Optimization Scripts -->
-    <%= javascript_include_tag "input_optimization" %>
-    <%= javascript_include_tag "scroll_optimization" %>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>
