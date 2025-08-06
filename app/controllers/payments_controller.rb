@@ -9,49 +9,22 @@ class PaymentsController < ApplicationController
 
   # Admin: List all payments
   def index
-    page = params[:page] || 1
-    
-    # Cache the payment data to avoid serialization issues
-    cached_data = Rails.cache.fetch("payments_data_page_#{page}", expires_in: 2.minutes) do
-      # Get total count
-      total_count = Payment.count
+    # Cache expensive payment statistics calculation
+    @payment_stats = Rails.cache.fetch("payment_stats_v1", expires_in: 5.minutes) do
+      stats = Payment.group(:status).count
+      completed_revenue = Payment.where(status: 'completed').sum(:amount) || 0
       
-      # Get paginated payment data with user info
-      offset = (page.to_i - 1) * 20
-      payments_data = Payment.joins(:user)
-                             .select('payments.id, payments.user_id, payments.amount, payments.status, payments.created_at, payments.updated_at, users.name as user_name, users.email as user_email')
-                             .order('payments.created_at DESC')
-                             .limit(20)
-                             .offset(offset)
-                             .map do |payment|
-        {
-          id: payment.id,
-          user_id: payment.user_id,
-          amount: payment.amount,
-          status: payment.status,
-          created_at: payment.created_at,
-          updated_at: payment.updated_at,
-          user_name: payment.user_name,
-          user_email: payment.user_email
-        }
-      end
-      
-      { payments: payments_data, total_count: total_count, page: page.to_i, per_page: 20 }
+      {
+        total: Payment.count,
+        completed_revenue: completed_revenue,
+        pending_count: stats['pending'] || 0,
+        failed_count: stats['failed'] || 0,
+        completed_count: stats['completed'] || 0
+      }
     end
-    
-    # Recreate payments with user data as OpenStruct
-    @payments = Kaminari.paginate_array(
-      cached_data[:payments].map do |payment_data|
-        payment = OpenStruct.new(payment_data)
-        # Add a user object for view compatibility
-        payment.user = OpenStruct.new(
-          name: payment_data[:user_name],
-          email: payment_data[:user_email]
-        )
-        payment
-      end,
-      total_count: cached_data[:total_count]
-    ).page(cached_data[:page]).per(cached_data[:per_page])
+
+    # Paginate payments
+    @payments = Payment.order(created_at: :desc).includes(:user).page(params[:page]).per(20)
   end
 
   # Show payment details (admin or payment owner)
@@ -72,7 +45,8 @@ class PaymentsController < ApplicationController
     @payment = Payment.new(payment_params)
     
     if @payment.save
-      # Clear payments cache when new payment is created
+      # Clear payment caches when new payment is created
+      Rails.cache.delete("payment_stats_v1")
       Rails.cache.delete_matched("payments_data_page_*")
       redirect_to @payment, notice: 'Payment was successfully created.'
     else
@@ -215,7 +189,8 @@ class PaymentsController < ApplicationController
         Rails.logger.info "Unhandled webhook event: #{event.type}"
       end
       
-      # Clear payments cache after any webhook that might create/update payments
+      # Clear payment caches after any webhook that might create/update payments
+      Rails.cache.delete("payment_stats_v1")
       Rails.cache.delete_matched("payments_data_page_*")
     end
 
@@ -344,6 +319,15 @@ class PaymentsController < ApplicationController
     end
 
     begin
+      # Get most recent checkout session ID for billing portal access
+      @checkout_session_id = Rails.cache.fetch("user_#{current_user.id}_checkout_session", expires_in: 10.minutes) do
+        Payment.where(user: current_user, status: 'completed')
+               .order(created_at: :desc)
+               .limit(1)
+               .pluck(:stripe_charge_id)
+               .first
+      end
+
       # Check if we have cached subscription info (valid for 5 minutes)
       cache_key = "subscription_info:#{current_user.id}"
       @subscription_info = Rails.cache.fetch(cache_key, expires_in: 5.minutes) do

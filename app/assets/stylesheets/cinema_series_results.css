@@ -1,7 +1,18 @@
 /* cinema_series_results.css
    Styles for the series results (externalized from _results.html.erb)
    Cinematic theme, responsive, glass morphism, Inter font, gradients, etc.
+   LCP OPTIMIZED VERSION
 */
+
+/* Critical LCP optimization styles */
+.series-card:first-child img,
+.series-card[data-priority="high"] img {
+  /* Highest priority for LCP element */
+  content-visibility: visible !important;
+  will-change: auto;
+  transform: none;
+  transition: none;
+}
 
 .series-card {
   background: rgba(15, 23, 42, 0.8);
@@ -28,8 +39,11 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: #222;
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   border-radius: 12px 12px 0 0;
+  /* Optimize for LCP - prevent layout shift */
+  min-height: 180px;
+  contain: layout size;
 }
 
 .series-card img {
@@ -39,6 +53,9 @@
   transition: transform 0.2s ease;
   will-change: transform;
   transform: translateZ(0);
+  /* Critical for LCP optimization */
+  content-visibility: auto;
+  contain-intrinsic-size: 320px 180px;
 }
 
 .series-card:hover img {

@@ -30,8 +30,9 @@ class SeriesController < ApplicationController
       # Efficient search with proper pagination - avoid loading all records
       search_scope = policy_scope(search_series(params))
       
-      # Apply ordering and pagination directly to the relation
+      # Apply ordering and pagination directly to the relation with image preloading
       @series = search_scope
+        .includes(:img_attachment)  # Preload image attachments only
         .order(updated_at: :desc)
         .page(page)
         .per(per_page)
@@ -47,9 +48,8 @@ class SeriesController < ApplicationController
         series_scope.count
       end
       
-      # Get paginated series with minimal eager loading (only tags, not movies)
+      # Get paginated series with minimal necessary eager loading
       @series = series_scope
-        .includes(:tags)  # Only load tags, not movies
         .order(updated_at: :desc)
         .page(page)
         .per(per_page)

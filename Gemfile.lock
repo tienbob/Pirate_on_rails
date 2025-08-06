@@ -88,9 +88,10 @@ GEM
     bindex (0.8.1)
     bootsnap (1.18.6)
       msgpack (~> 1.2)
-    brakeman (7.0.2)
-      racc
     builder (3.3.0)
+    bullet (8.0.8)
+      activesupport (>= 3.0.0)
+      uniform_notifier (~> 1.11)
     capybara (3.40.0)
       addressable
       matrix
@@ -142,13 +143,6 @@ GEM
     erubi (1.13.1)
     et-orbi (1.2.11)
       tzinfo
-    factory_bot (6.5.4)
-      activesupport (>= 6.1.0)
-    factory_bot_rails (6.5.0)
-      factory_bot (~> 6.5)
-      railties (>= 6.1.0)
-    faker (2.23.0)
-      i18n (>= 1.8.11, < 2)
     faraday (1.10.4)
       faraday-em_http (~> 1.0)
       faraday-em_synchrony (~> 1.0)
@@ -309,6 +303,8 @@ GEM
     rack (3.1.16)
     rack-cors (1.1.1)
       rack (>= 2.0.0)
+    rack-mini-profiler (4.0.1)
+      rack (>= 1.2.0)
     rack-protection (4.1.1)
       base64 (>= 0.1.0)
       logger (>= 1.6.0)
@@ -373,7 +369,6 @@ GEM
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
     rexml (3.4.1)
-    rollbar (3.6.2)
     rspec-core (3.13.5)
       rspec-support (~> 3.13.0)
     rspec-expectations (3.13.5)
@@ -397,20 +392,6 @@ GEM
     rubocop-ast (1.45.1)
       parser (>= 3.3.7.2)
       prism (~> 1.4)
-    rubocop-performance (1.25.0)
-      lint_roller (~> 1.1)
-      rubocop (>= 1.75.0, < 2.0)
-      rubocop-ast (>= 1.38.0, < 2.0)
-    rubocop-rails (2.32.0)
-      activesupport (>= 4.2.0)
-      lint_roller (~> 1.1)
-      rack (>= 1.1)
-      rubocop (>= 1.75.0, < 2.0)
-      rubocop-ast (>= 1.44.0, < 2.0)
-    rubocop-rails-omakase (1.1.0)
-      rubocop (>= 1.72)
-      rubocop-performance (>= 1.24)
-      rubocop-rails (>= 2.30)
     ruby-progressbar (1.13.0)
     ruby-vips (2.2.4)
       ffi (~> 1.12)
@@ -424,12 +405,6 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
       websocket (~> 1.0)
-    sentry-rails (4.9.2)
-      railties (>= 5.0)
-      sentry-ruby-core (~> 4.9.2)
-    sentry-ruby-core (4.9.2)
-      concurrent-ruby
-      faraday
     sidekiq (6.0.4)
       connection_pool (>= 2.2.2)
       rack (>= 2.0.0)
@@ -479,6 +454,7 @@ GEM
     unicode-display_width (3.1.4)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
+    uniform_notifier (1.17.0)
     uri (1.0.3)
     useragent (0.16.11)
     warden (1.2.9)
@@ -508,15 +484,13 @@ DEPENDENCIES
   active_model_serializers (~> 0.10)
   bcrypt (~> 3.1.7)
   bootsnap
-  brakeman
+  bullet
   capybara
   debug
   devise (~> 4.8)
   dotenv-rails
   elasticsearch-model
   elasticsearch-rails
-  factory_bot_rails (~> 6.0)
-  faker (~> 2.0)
   faraday (~> 1.0)
   fiddle
   image_processing (~> 1.2)
@@ -533,13 +507,11 @@ DEPENDENCIES
   pundit (~> 2.0)
   pundit-matchers
   rack-cors (~> 1.1)
+  rack-mini-profiler
   rails (~> 8.0.2)
   redis (~> 4.0)
-  rollbar (~> 3.0)
   rubocop (~> 1.0)
-  rubocop-rails-omakase
   selenium-webdriver
-  sentry-rails (~> 4.0)
   sidekiq (~> 6.0)
   solid_cable
   solid_cache

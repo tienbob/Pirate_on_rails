@@ -15,24 +15,24 @@
             <!-- Statistics -->
             <div class="payments-stats">
               <div class="stat-card">
-                <div class="stat-value"><%= @payments.respond_to?(:total_count) ? @payments.total_count : @payments.size %></div>
+                <div class="stat-value"><%= @payment_stats[:total] %></div>
                 <div class="stat-label">Total Payments</div>
               </div>
               <div class="stat-card">
                 <div class="stat-value" style="color: #10b981;">
-                  <%= number_to_currency(@payments.select { |p| p.status == 'completed' }.sum(&:amount) || 0) %>
+                  <%= number_to_currency(@payment_stats[:completed_revenue]) %>
                 </div>
                 <div class="stat-label">Completed Revenue</div>
               </div>
               <div class="stat-card">
                 <div class="stat-value" style="color: #f59e0b;">
-                  <%= @payments.count { |p| p.status == 'pending' } %>
+                  <%= @payment_stats[:pending_count] %>
                 </div>
                 <div class="stat-label">Pending Payments</div>
               </div>
               <div class="stat-card">
                 <div class="stat-value" style="color: #ef4444;">
-                  <%= @payments.count { |p| p.status == 'failed' } %>
+                  <%= @payment_stats[:failed_count] %>
                 </div>
                 <div class="stat-label">Failed Payments</div>
               </div>
@@ -43,7 +43,7 @@
               <% if @payments.any? %>
                 <div class="payments-table">
                   <table class=" table-hover align-middle mb-0">
-                    <thead>
+                    <thead style="background-color: #1e293b; color: #f1f5f9;">
                       <tr>
                         <th><i class="fas fa-hashtag me-2"></i>ID</th>
                         <th><i class="fas fa-user me-2"></i>Customer</th>
