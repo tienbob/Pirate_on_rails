@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  # Prevent favicon.ico errors by returning 204 No Content
+  get '/favicon.ico', to: proc { [204, {}, []] }
   # Health check endpoint for Docker and load balancers
   get '/health', to: 'application#health'
   

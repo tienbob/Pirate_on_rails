@@ -46,23 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
     scrollTimeout = requestAnimationFrame(optimizeHoverEffects);
   });
 
-  // Preload critical CSS if not already loaded
-  const criticalCSS = [
-    'cinema_series_search',
-    'cinema_series_results'
-  ];
-
-  criticalCSS.forEach(cssFile => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'style';
-    link.href = `/assets/${cssFile}.css`;
-    link.onload = function() {
-      this.rel = 'stylesheet';
-    };
-    document.head.appendChild(link);
-  });
-
   // Optimize tag rendering with virtual scrolling for large lists
   function optimizeTagDisplay() {
     const tagContainers = document.querySelectorAll('.series-card-tags');
@@ -73,22 +56,9 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let i = 3; i < tags.length; i++) {
           tags[i].style.display = 'none';
         }
-        
-        const showMore = document.createElement('span');
-        showMore.className = 'series-card-tag show-more';
-        showMore.textContent = `+${tags.length - 3} more`;
-        showMore.style.cursor = 'pointer';
-        showMore.addEventListener('click', function() {
-          for (let i = 3; i < tags.length; i++) {
-            tags[i].style.display = 'inline-block';
-          }
-          this.style.display = 'none';
-        });
-        container.appendChild(showMore);
       }
     });
   }
-
   // Run optimization after DOM is ready
   optimizeTagDisplay();
 });

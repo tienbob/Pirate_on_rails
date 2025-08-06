@@ -11,10 +11,21 @@
   <div class="row g-4">
     <% @series.each do |series| %>
       <% cache [series, series.tags.maximum(:updated_at)] do %>
+        <% 
+          # Use cached direct URL without going through helper to prevent repeated calls
+          cached_image_url = Rails.cache.fetch("series_direct_url_#{series.id}_v3", expires_in: 24.hours) do
+            if series.img.attached?
+              # Generate URL once and cache it for 24 hours
+              url_for(series.img)
+            else
+              asset_url('series/default.JPG')
+            end
+          end
+        %>
         <div class="col-md-6 col-lg-4">
           <div class="series-card">
             <div class="series-card-image">
-              <%= image_tag series_image_url(series), 
+              <%= image_tag cached_image_url, 
                   alt: series.title, 
                   loading: "lazy",
                   decoding: "async",

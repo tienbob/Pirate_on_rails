@@ -9,13 +9,13 @@ Rails.application.configure do
     view_requests: { limit: 100, period: 1.hour }
   }
   
-  # Session security
+  # Session security - use session cookies by default (expire on browser close)
   config.session_store :cookie_store, 
     key: '_pirate_rails_session',
     httponly: true,
     secure: Rails.env.production?,
-    same_site: :strict,
-    expire_after: 24.hours
+    same_site: :strict
+    # No expire_after - this makes it a session cookie that expires when browser closes
     
   # Configure secure headers
   config.force_ssl = true if Rails.env.production?
