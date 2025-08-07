@@ -7,8 +7,16 @@ export default class extends Controller {
     // Subscribe to Action Cable for live updates (always active)
     if (!this.cableSubscribed) {
       // Get current user id from meta tag
-      const meta = document.querySelector('meta[name="current-user-id"]');
-      this.currentUserId = meta ? meta.getAttribute('content') : null;
+      let currentUserId = null;
+      try {
+        const meta = document.querySelector('meta[name="current-user-id"]');
+        if (meta && typeof meta.getAttribute === 'function') {
+          currentUserId = meta.getAttribute('content');
+        }
+      } catch (e) {
+        console.warn('Could not get current user ID:', e);
+      }
+      this.currentUserId = currentUserId;
       console.log("Subscribing to ChatChannel...", this.currentUserId);
       this.subscribeToChatChannel();
       this.cableSubscribed = true;
@@ -51,8 +59,15 @@ export default class extends Controller {
     });
     this.formTarget.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const msg = this.inputTarget.value.trim();
-      if (msg) {
+      console.log("Chat form submitted!"); // Debug log
+      
+      try {
+        const msg = this.inputTarget.value.trim();
+        console.log("Message:", msg); // Debug log
+        if (!msg) {
+          return;
+        }
+
         // Show user message immediately
         this.appendMessage({ user_message: msg });
         this.inputTarget.value = "";
@@ -63,27 +78,51 @@ export default class extends Controller {
         this.showAILoading();
 
         // Send to backend via AJAX
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const headers = {
+          "Content-Type": "application/json"
+        };
+        
         try {
-          await fetch("/chats", {
+          console.log("Sending message to backend:", msg); // Debug log
+          const response = await fetch("/chats", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-CSRF-Token": csrfToken
-            },
+            headers: headers,
             body: JSON.stringify({ message: msg })
           });
+          
+          console.log("Response status:", response.status); // Debug log
+          
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+          
+          const responseData = await response.json();
+          console.log("Response data:", responseData); // Debug log
+          
           // AI response will arrive via Action Cable
         } catch (err) {
+          console.error("Fetch error:", err); // Debug log
           this.removeAILoading();
           const errDiv = document.createElement("div");
-          errDiv.textContent = "Network error.";
+          errDiv.textContent = "Network error: " + err.message;
           errDiv.style.margin = "8px 0";
           errDiv.style.textAlign = "left";
           errDiv.style.color = "#dc3545";
           this.messagesTarget.appendChild(errDiv);
           this.messagesTarget.scrollTop = this.messagesTarget.scrollHeight;
         }
+      } catch (error) {
+        console.error('Form submission error:', error);
+        // Remove any loading indicators
+        this.removeAILoading();
+        // Show error to user
+        const errDiv = document.createElement("div");
+        errDiv.textContent = "An error occurred. Please try again.";
+        errDiv.style.margin = "8px 0";
+        errDiv.style.textAlign = "left";
+        errDiv.style.color = "#dc3545";
+        this.messagesTarget.appendChild(errDiv);
+        this.messagesTarget.scrollTop = this.messagesTarget.scrollHeight;
       }
     });
   }
