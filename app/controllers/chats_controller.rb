@@ -8,11 +8,22 @@ class ChatsController < ApplicationController
     user_message = params[:message]
     
     begin
-      response = Faraday.post("http://localhost:5000/chat", { message: user_message }.to_json, "Content-Type" => "application/json")
+      python_ai_url = ENV['PYTHON_AI_URL'] || 'http://localhost:5000'
+      timeout = ENV['AI_SERVICE_TIMEOUT']&.to_i || 120
+      
+      connection = Faraday.new(url: python_ai_url) do |f|
+        f.options.timeout = timeout
+        f.options.open_timeout = 10
+      end
+      
+      response = connection.post("/chat", { message: user_message }.to_json, "Content-Type" => "application/json")
       ai_response = JSON.parse(response.body)["response"] rescue "Sorry, I couldn't process your request."
     rescue Faraday::ConnectionFailed, Errno::ECONNREFUSED => e
       Rails.logger.error "AI service connection failed: #{e.message}"
       ai_response = "Sorry, the AI service is currently unavailable. Please try again later."
+    rescue Faraday::TimeoutError => e
+      Rails.logger.error "AI service timeout: #{e.message}"
+      ai_response = "Sorry, the AI service is taking too long to respond. Please try again."
     rescue => e
       Rails.logger.error "Unexpected error in chat: #{e.message}"
       ai_response = "Sorry, something went wrong. Please try again."

@@ -31,8 +31,9 @@ Rails.application.configure do
   end
   
   # Enable HTTP/2 Server Push for critical assets
+  # Disabled for Docker development - Nginx handles SSL termination
   if Rails.env.production?
-    config.force_ssl = true
+    # config.force_ssl = true
     config.ssl_options = {
       hsts: { subdomains: true, preload: true, expires: 1.year }
     }

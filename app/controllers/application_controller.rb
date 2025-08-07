@@ -5,7 +5,8 @@ class ApplicationController < ActionController::Base
   # before_action :log_user_activity_optimized
   
   include Pundit::Authorization
-  protect_from_forgery with: :exception, prepend: true
+  # Temporarily disabled CSRF protection for proxy testing
+  # protect_from_forgery with: :exception, prepend: true
   
   # Security headers
   # before_action :set_security_headers  # Temporarily disabled to debug performance

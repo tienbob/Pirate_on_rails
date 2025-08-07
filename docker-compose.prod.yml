@@ -1,7 +1,6 @@
 # Production Docker Compose Override
 # Use with: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
 
-version: '3.8'
 services:
   # Rails application container for production
   web:
@@ -127,3 +126,17 @@ services:
       - ES_JAVA_OPTS=-Xms1g -Xmx1g
       - bootstrap.memory_lock=true
       - cluster.routing.allocation.disk.threshold_enabled=false
+
+  # Python AI Microservice production config
+  python-ai:
+    environment:
+      - SERIES_DATA_URL=http://web:3000/chats/series_data
+      - RAILS_HISTORY_URL=http://web:3000/chats/history
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+    volumes:
+      - ai_models:/app/models
+      - ai_data:/app/data
+      - ./ai_logs:/app/logs  # Production logging
+    restart: unless-stopped

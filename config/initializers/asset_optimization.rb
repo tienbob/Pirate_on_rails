@@ -1,7 +1,8 @@
 # Asset Performance Optimizations
 Rails.application.configure do
   # HTTP/2 Server Push for critical resources
-  config.force_ssl = true if Rails.env.production?
+  # Disabled for Docker development - Nginx handles SSL termination
+  # config.force_ssl = true if Rails.env.production?
   
   # Asset precompilation for cinema bundle
   if Rails.env.production?

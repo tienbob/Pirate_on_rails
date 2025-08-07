@@ -15,3 +15,22 @@
     </div>
   </div>
 </div>
+
+<script>
+// Check if this page opened in a popup window
+if (window.opener && !window.opener.closed) {
+  // This is a popup - close it and communicate success to parent
+  try {
+    window.opener.postMessage({ type: 'payment_success' }, window.location.origin);
+    window.close();
+  } catch (e) {
+    // If cross-origin issues, just close the popup
+    window.close();
+  }
+} else {
+  // This is the main window - show success message and redirect after delay
+  setTimeout(function() {
+    window.location.href = '/series';
+  }, 3000);
+}
+</script>

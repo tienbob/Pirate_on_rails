@@ -12,13 +12,14 @@
           </div>
         <% end %>
         
-        <form method="post" action="<%= create_checkout_session_payments_path %>" data-turbo="false">
+        <form id="checkout-form" method="post" action="<%= create_checkout_session_payments_path %>" data-turbo="false">
           <div class="mb-3">
             <label class="form-label">Amount</label>
             <input type="number" class="form-control" value="9.99" readonly>
           </div>
           <input type="hidden" name="user_id" value="<%= current_user.id %>">
           <input type="hidden" name="price" value="<%= ENV['STRIPE_PRICE_ID'] %>">
+          <input type="hidden" name="popup" value="true">
           <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
           <div class="d-grid gap-2">
             <button type="submit" class="btn btn-gradient btn-lg" id="checkout-button">
@@ -34,6 +35,88 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('checkout-form');
+  const button = document.getElementById('checkout-button');
+  const spinner = button.querySelector('.spinner-border');
+  let popup = null;
+  let checkInterval = null;
+  
+  // Listen for messages from popup
+  window.addEventListener('message', function(event) {
+    // Only accept messages from our own origin (success/cancel pages)
+    if (event.origin === window.location.origin) {
+      if (event.data.type === 'payment_success') {
+        // Payment successful - redirect to dashboard
+        if (popup) popup.close();
+        if (checkInterval) clearInterval(checkInterval);
+        window.location.href = '/series';
+      } else if (event.data.type === 'payment_cancelled') {
+        // Payment cancelled - reset button
+        if (popup) popup.close();
+        if (checkInterval) clearInterval(checkInterval);
+        resetButton();
+      }
+    }
+  });
+  
+  function resetButton() {
+    button.disabled = false;
+    spinner.classList.add('d-none');
+  }
+  
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Show loading state
+    button.disabled = true;
+    spinner.classList.remove('d-none');
+    
+    // Prepare form data
+    const formData = new FormData(form);
+    
+    // Send AJAX request to get checkout URL
+    fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.checkout_url) {
+        // Open Stripe checkout in popup
+        popup = window.open(
+          data.checkout_url,
+          'stripe-checkout',
+          'width=600,height=700,scrollbars=yes,resizable=yes'
+        );
+        
+        // Monitor popup closure
+        checkInterval = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(checkInterval);
+            resetButton();
+          }
+        }, 1000);
+        
+      } else if (data.error) {
+        alert('Error: ' + data.error);
+        resetButton();
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('An error occurred. Please try again.');
+      resetButton();
+    });
+  });
+});
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

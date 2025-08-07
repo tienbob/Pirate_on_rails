@@ -102,6 +102,17 @@
   background: rgba(30, 41, 59, 0.9);
 }
 
+.file-input-container-series.drag-over {
+  border-color: rgba(59, 130, 246, 0.8);
+  background: rgba(59, 130, 246, 0.1);
+  transform: scale(1.02);
+}
+
+.file-input-container-series.file-selected {
+  border-color: rgba(16, 185, 129, 0.6);
+  background: rgba(16, 185, 129, 0.1);
+}
+
 .file-input-container-series input[type="file"] {
   position: absolute;
   opacity: 0;
@@ -114,6 +125,14 @@
   font-family: 'Inter', sans-serif;
   color: #94a3b8;
   font-size: 0.875rem;
+}
+
+.file-selected {
+  color: #10b981 !important;
+}
+
+.file-selected i {
+  color: #10b981 !important;
 }
 
 .tags-grid-series {

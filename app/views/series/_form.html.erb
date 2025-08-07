@@ -23,7 +23,7 @@
         required: true %>
   </div>
 
-  <div class="form-group-series">
+  <div class="form-group-series" data-controller="file-upload">
     <%= form.label :img, class: 'form-label-series' do %>
       <i class="fas fa-image me-2"></i>Series Poster Image
     <% end %>
@@ -31,13 +31,15 @@
       <%= form.file_field :img,
           accept: "image/*",
           class: 'form-control',
-          direct_upload: true %>
-      <div class="file-input-text-series">
+          direct_upload: true,
+          data: { file_upload_target: "input" } %>
+      <div class="file-input-text-series" data-file-upload-target="text">
         <i class="fas fa-cloud-upload-alt mb-2" style="font-size: 2rem; color: #64748b;"></i>
         <p>Click to upload poster image or drag and drop</p>
         <p style="font-size: 0.75rem;">Supported formats: JPG, PNG, WebP</p>
       </div>
     </div>
+    <div data-file-upload-target="preview"></div>
   </div>
 
   <div class="form-group-series">

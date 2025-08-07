@@ -28,8 +28,9 @@ Rails.application.configure do
   config.active_job.queue_adapter = :sidekiq if defined?(Sidekiq)
   
   # Security configurations
-  config.force_ssl = true if Rails.env.production?
-  config.ssl_options = { hsts: { subdomains: true } } if Rails.env.production?
+  # Disabled for Docker development - Nginx handles SSL termination
+  # config.force_ssl = true if Rails.env.production?
+  # config.ssl_options = { hsts: { subdomains: true } } if Rails.env.production?
 end
 
 # Rate limiting store

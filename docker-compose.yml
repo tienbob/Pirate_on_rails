@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   # PostgreSQL database for production
   postgres:
@@ -76,10 +75,84 @@ services:
       timeout: 10s
       retries: 3
 
+  # Rails web application
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "3000"  # Changed from ports to expose since Nginx will proxy
+    environment:
+      - RAILS_ENV=production
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-your_secure_password_here}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./storage:/rails/storage
+      - ./log:/rails/log
+      - static_files:/rails/public  # Share static files with Nginx
+    restart: unless-stopped
+    env_file:
+      - .env
+
+  # Nginx reverse proxy and static file server
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"  # For future SSL support
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_files:/var/www/public:ro  # Access Rails static files
+      - ./log:/var/log/nginx  # Share log directory
+    depends_on:
+      - web
+      - python-ai
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Python AI Microservice
+  python-ai:
+    build:
+      context: ./python-ai-service
+      dockerfile: Dockerfile
+    expose:
+      - "8000"  # Changed from ports to expose since Nginx will proxy
+    environment:
+      - SERIES_DATA_URL=http://web:3000/chats/series_data
+      - RAILS_HISTORY_URL=http://web:3000/chats/history
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ai_models:/app/models  # For caching ML models
+      - ai_data:/app/data      # For FAISS indices
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
   postgres_data:
     driver: local
   esdata:
     driver: local
   redis_data:
+    driver: local
+  ai_models:
+    driver: local
+  ai_data:
+    driver: local
+  static_files:
     driver: local

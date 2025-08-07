@@ -17,3 +17,17 @@
     </div>
   </div>
 </div>
+
+<script>
+// Check if this page opened in a popup window
+if (window.opener && !window.opener.closed) {
+  // This is a popup - close it and communicate cancellation to parent
+  try {
+    window.opener.postMessage({ type: 'payment_cancelled' }, window.location.origin);
+    window.close();
+  } catch (e) {
+    // If cross-origin issues, just close the popup
+    window.close();
+  }
+}
+</script>

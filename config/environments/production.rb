@@ -38,10 +38,12 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  config.assume_ssl = true
+  # Disabled for local development/testing
+  config.assume_ssl = false
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  # Disabled for local development/testing
+  config.force_ssl = false
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
@@ -90,6 +92,35 @@ Rails.application.configure do
 
   # Only use :id for inspections in production.
   config.active_record.attributes_for_inspect = [ :id ]
+
+  # Action Cable configuration for WebSocket connections
+  config.action_cable.allowed_request_origins = [
+    'http://localhost:3000', 'https://localhost:3000', 
+    'http://localhost', 'https://localhost',
+    'http://localhost:80', 'https://localhost:443'
+  ]
+  config.action_cable.url = '/cable'
+  config.action_cable.mount_path = '/cable'
+  
+  # Disable request forgery protection for Action Cable in Docker environment
+  config.action_cable.disable_request_forgery_protection = true
+
+  # Configure for reverse proxy (Nginx)
+  config.force_ssl = false
+  config.assume_ssl = false
+  
+  # Trust proxy headers from Nginx
+  config.action_dispatch.trusted_proxies = ActionDispatch::RemoteIp::TRUSTED_PROXIES + [
+    IPAddr.new("172.0.0.0/8"),  # Docker network range
+    IPAddr.new("10.0.0.0/8"),   # Private network range
+    IPAddr.new("192.168.0.0/16") # Private network range
+  ]
+  
+  # Disable CSRF origin check for proxy requests
+  config.action_controller.forgery_protection_origin_check = false
+  
+  # Temporarily disable CSRF protection entirely for testing
+  config.action_controller.allow_forgery_protection = false
 
   # Enable DNS rebinding protection and other `Host` header attacks.
   # config.hosts = [

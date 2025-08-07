@@ -18,7 +18,7 @@ class PaymentEvent < ApplicationRecord
   scope :manual, -> { where(source: 'manual') }
 
   # Serialize event data as JSON
-  serialize :event_data, JSON
+  serialize :event_data, coder: JSON
 
   def self.log_event(payment, event_type, data = {}, source = 'system')
     create!(

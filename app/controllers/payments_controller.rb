@@ -118,7 +118,16 @@ class PaymentsController < ApplicationController
       # Also store token mapping to session ID for security
       Rails.cache.write("success_token_#{token}", session.id, expires_in: 1.hour)
       
-      redirect_to session.url, allow_other_host: true
+      # Check if this is an AJAX request for popup
+      if request.xhr? || params[:popup] == 'true'
+        render json: { 
+          success: true, 
+          checkout_url: session.url,
+          session_id: session.id
+        }
+      else
+        redirect_to session.url, allow_other_host: true
+      end
       
     rescue Stripe::StripeError => e
       Rails.logger.error "Stripe checkout session creation failed: #{e.message}"

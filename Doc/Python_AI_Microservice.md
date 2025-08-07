@@ -14,7 +14,7 @@ This microservice acts as the AI agent for the Pirate On Rails platform. It rece
 ### `/health` (GET)
 - Health check endpoint.
 
-### `/chats/movies_data` (GET)
+### `/chats/series_data` (GET)
 - Returns all movie data (title, description, tags, is_pro) for semantic search and embedding.
 
 ### `/chats/history` (GET)

@@ -9,16 +9,17 @@ Rails.application.configure do
     view_requests: { limit: 100, period: 1.hour }
   }
   
-  # Session security - use session cookies by default (expire on browser close)
+  # Session security - configured for external payment provider compatibility
   config.session_store :cookie_store, 
     key: '_pirate_rails_session',
     httponly: true,
-    secure: Rails.env.production?,
-    same_site: :strict
-    # No expire_after - this makes it a session cookie that expires when browser closes
+    secure: false,  # Disabled for Docker development without SSL
+    same_site: :lax,  # Changed from :strict to :lax for Stripe redirect compatibility
+    expire_after: 24.hours  # Set explicit expiration to prevent session loss during redirects
     
   # Configure secure headers
-  config.force_ssl = true if Rails.env.production?
+  # Disabled for Docker development - Nginx handles SSL termination
+  # config.force_ssl = true if Rails.env.production?
 end
 
 # Security helper methods
