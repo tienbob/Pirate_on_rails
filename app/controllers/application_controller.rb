@@ -32,7 +32,8 @@ class ApplicationController < ActionController::Base
       status: all_healthy ? 'healthy' : 'unhealthy',
       timestamp: Time.current.iso8601,
       checks: checks,
-      version: Rails.application.config.version || 'unknown'
+      version: Rails.version,
+      environment: Rails.env
     }, status: status
   end
 
