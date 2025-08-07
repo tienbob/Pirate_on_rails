@@ -2,7 +2,7 @@
   <%= stylesheet_link_tag 'cinema_series_form', media: 'all' %>
 <% end %>
 
-<%= form_with(model: series, local: true) do |form| %>
+<%= form_with(model: series, local: true, html: { multipart: true, data: { turbo: false } }) do |form| %>
   <div class="form-group-series">
     <%= form.label :title, class: 'form-label-series' do %>
       <i class="fas fa-tv me-2"></i>Series Title
@@ -61,6 +61,91 @@
   </div>
 
   <div class="form-group-series">
-    <%= form.submit series.persisted? ? 'Update Series' : 'Create Series', class: 'submit-button-series' %>
+    <%= form.submit series.persisted? ? 'Update Series' : 'Create Series', 
+        class: 'submit-button-series',
+        data: { disable_with: 'Creating Series...' } %>
   </div>
 <% end %>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector('form');
+  const submitButton = form.querySelector('.submit-button-series');
+  
+  console.log('Series form script loaded', { form, submitButton });
+  
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      console.log('Series form submit event triggered');
+      
+      // Check if all required fields are filled
+      const title = form.querySelector('input[name="series[title]"]');
+      const description = form.querySelector('textarea[name="series[description]"]');
+      const imageFile = form.querySelector('input[name="series[img]"]');
+      
+      if (!title || !title.value.trim()) {
+        e.preventDefault();
+        alert('Please enter a series title');
+        return;
+      }
+      
+      if (!description || !description.value.trim()) {
+        e.preventDefault();
+        alert('Please enter a description');
+        return;
+      }
+      
+      // Check image file if selected
+      if (imageFile && imageFile.files && imageFile.files.length > 0) {
+        const file = imageFile.files[0];
+        const fileSizeMB = file.size / (1024 * 1024);
+        
+        // Check file size (warn if over 10MB for images)
+        if (fileSizeMB > 10) {
+          e.preventDefault();
+          alert(`Image size is ${Math.round(fileSizeMB)}MB. Please use an image smaller than 10MB for better performance.`);
+          return;
+        }
+        
+        // Check if it's actually an image
+        if (!file.type.startsWith('image/')) {
+          e.preventDefault();
+          alert('Please select a valid image file (JPG, PNG, WebP)');
+          return;
+        }
+      }
+      
+      console.log('Series form validation passed, submitting...');
+      
+      // Show loading state
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerHTML = `
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Creating Series...
+        `;
+      }
+      
+      // Show upload progress message if there's an image
+      if (imageFile && imageFile.files && imageFile.files.length > 0) {
+        const progressDiv = document.createElement('div');
+        progressDiv.className = 'upload-progress mt-3';
+        progressDiv.innerHTML = `
+          <div class="alert alert-info">
+            <i class="fas fa-upload me-2"></i>
+            Creating series and uploading poster image...
+            <br><small>Please wait while we process your request.</small>
+          </div>
+        `;
+        form.appendChild(progressDiv);
+      }
+    });
+  }
+  
+  if (submitButton) {
+    submitButton.addEventListener('click', function(e) {
+      console.log('Series submit button clicked');
+    });
+  }
+});
+</script>

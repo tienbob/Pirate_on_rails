@@ -96,6 +96,12 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   # Nginx reverse proxy and static file server
   nginx:
@@ -108,8 +114,10 @@ services:
       - static_files:/var/www/public:ro  # Access Rails static files
       - ./log:/var/log/nginx  # Share log directory
     depends_on:
-      - web
-      - python-ai
+      web:
+        condition: service_healthy  # Wait for Rails to be healthy
+      python-ai:
+        condition: service_healthy  # Wait for Python AI to be healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "nginx", "-t"]
@@ -129,6 +137,8 @@ services:
       - RAILS_HISTORY_URL=http://web:3000/chats/history
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
+      web:
+        condition: service_healthy  # Wait for Rails to be fully ready
       redis:
         condition: service_healthy
       elasticsearch:

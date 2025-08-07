@@ -4,6 +4,12 @@ export default class extends Controller {
   static targets = ["input", "text", "preview"]
 
   connect() {
+    console.log('File upload controller connected')
+    console.log('Element:', this.element)
+    console.log('Has input target:', this.hasInputTarget)
+    console.log('Has text target:', this.hasTextTarget)
+    console.log('Input target:', this.inputTarget)
+    console.log('Text target:', this.textTarget)
     this.setupFileInput()
   }
 
@@ -44,15 +50,23 @@ export default class extends Controller {
     const files = event.target.files
     if (files.length > 0) {
       const file = files[0]
+      console.log('File selected:', file.name, file.size, file.type)
       this.updateFileDisplay(file)
+    } else {
+      console.log('No file selected')
+      this.reset()
     }
   }
 
   updateFileDisplay(file) {
+    console.log('Updating file display for:', file.name)
+    
     if (this.hasTextTarget) {
       const fileName = file.name
       const fileSize = this.formatFileSize(file.size)
       const fileType = file.type
+      
+      console.log('Updating text target with file info')
       
       // Update the display text
       this.textTarget.innerHTML = `
@@ -67,14 +81,20 @@ export default class extends Controller {
       // Add visual feedback to container
       const container = this.element.querySelector('.file-input-container, .file-input-container-series')
       if (container) {
+        console.log('Adding visual feedback to container')
         container.classList.add('file-selected')
         container.style.borderColor = '#10b981'
         container.style.backgroundColor = 'rgba(16, 185, 129, 0.1)'
+      } else {
+        console.log('Container not found for visual feedback')
       }
+    } else {
+      console.log('Text target not found')
     }
 
     // Show preview for images
     if (file.type.startsWith('image/') && this.hasPreviewTarget) {
+      console.log('Showing image preview')
       const reader = new FileReader()
       reader.onload = (e) => {
         this.previewTarget.innerHTML = `

@@ -25,5 +25,12 @@ module PirateOnRails
     # config.eager_load_paths << Rails.root.join("extras")
     # Enable the asset pipeline
     config.autoload_paths += %W(#{config.root}/app/controllers/concerns)
+    
+    # Configure for large file uploads (up to 1GB)
+    config.active_storage.variant_processor = :mini_magick
+    config.active_storage.web_image_content_types = %w[image/png image/jpeg image/jpg image/gif image/webp]
+    
+    # Allow longer timeouts for large uploads
+    config.force_ssl = false # We handle SSL in Nginx
   end
 end

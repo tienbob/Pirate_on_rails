@@ -7,7 +7,7 @@
     <div class="row justify-content-center">
       <div class="col-lg-8">
         <div class="form-card ">
-          <%= form_with(model: movie, local: true, html: { multipart: true, class: 'movie-form' }) do |form| %>
+          <%= form_with(model: movie, local: true, html: { multipart: true, class: 'movie-form', data: { turbo: false }, authenticity_token: false }) do |form| %>
             <% if movie.errors.any? %>
               <div class="error-alert">
                 <h4>
@@ -79,11 +79,11 @@
 
             <%= form.hidden_field :series_id, value: movie.series_id %>
 
-            <div class="form-group" data-controller="movie">
+            <div class="form-group">
               <%= form.label :tags, class: 'form-label' do %>
                 <i class="fas fa-tags me-2"></i>Genres & Tags
               <% end %>
-              <div class="tags-grid" data-movie-target="tagSelect">
+              <div class="tags-grid">
                 <% selected_tags = (movie.tags + (movie.series&.tags || [])).uniq %>
                 <% Tag.all.each do |tag| %>
                   <div class="tag-checkbox">
@@ -95,12 +95,12 @@
                   </div>
                 <% end %>
               </div>
-              <input type="hidden" data-movie-target="selectedTags" />
             </div>
 
             <div class="form-group">
               <%= form.submit movie.persisted? ? 'Update Movie' : 'Create Movie', 
-                  class: 'submit-button' %>
+                  class: 'submit-button',
+                  data: { disable_with: 'Creating Movie...' } %>
             </div>
           <% end %>
         </div>
@@ -108,3 +108,93 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.querySelector('.movie-form');
+  const submitButton = form.querySelector('.submit-button');
+  
+  console.log('Movie form script loaded', { form, submitButton });
+  
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      console.log('Form submit event triggered');
+      
+      // Check if all required fields are filled
+      const title = form.querySelector('input[name="movie[title]"]');
+      const description = form.querySelector('textarea[name="movie[description]"]');
+      const videoFile = form.querySelector('input[name="movie[video_file]"]');
+      
+      if (!title || !title.value.trim()) {
+        e.preventDefault();
+        alert('Please enter a movie title');
+        return;
+      }
+      
+      if (!description || !description.value.trim()) {
+        e.preventDefault();
+        alert('Please enter a description');
+        return;
+      }
+      
+      // Check if a video file is selected
+      if (!videoFile || !videoFile.files || videoFile.files.length === 0) {
+        e.preventDefault();
+        alert('Please select a video file to upload');
+        return;
+      }
+      
+      // Check file size (warn if over 50MB, allow up to 1GB)
+      const file = videoFile.files[0];
+      const fileSizeMB = file.size / (1024 * 1024);
+      const fileSizeGB = fileSizeMB / 1024;
+      
+      if (fileSizeMB > 1024) { // Over 1GB
+        e.preventDefault();
+        alert(`File size is ${fileSizeGB.toFixed(2)}GB. Maximum allowed size is 1GB. Please compress your video or use a smaller file.`);
+        return;
+      } else if (fileSizeMB > 50) {
+        if (!confirm(`The file is ${Math.round(fileSizeMB)}MB (${fileSizeGB.toFixed(2)}GB). Large files may take 30+ minutes to upload. Continue?`)) {
+          e.preventDefault();
+          return;
+        }
+      }
+      
+      console.log('Form validation passed, submitting...');
+      
+      // Show loading state
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerHTML = `
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Uploading Movie...
+        `;
+      }
+      
+      // Show upload progress message
+      const progressDiv = document.createElement('div');
+      progressDiv.className = 'upload-progress mt-3';
+      const timeEstimate = fileSizeMB > 100 ? 'This may take 30+ minutes for very large files.' : 'This may take several minutes for large files.';
+      progressDiv.innerHTML = `
+        <div class="alert alert-info">
+          <i class="fas fa-upload me-2"></i>
+          Uploading your movie (${Math.round(fileSizeMB)}MB)... ${timeEstimate}
+          <br><small>Please don't close this window or navigate away during upload.</small>
+          <div class="mt-2">
+            <div class="progress">
+              <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+            </div>
+          </div>
+        </div>
+      `;
+      form.appendChild(progressDiv);
+    });
+  }
+  
+  if (submitButton) {
+    submitButton.addEventListener('click', function(e) {
+      console.log('Submit button clicked');
+    });
+  }
+});
+</script>

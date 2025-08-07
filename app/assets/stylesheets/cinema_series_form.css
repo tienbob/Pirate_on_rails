@@ -135,6 +135,15 @@
   color: #10b981 !important;
 }
 
+.upload-progress {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .tags-grid-series {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
