@@ -8,7 +8,7 @@ class ChatsController < ApplicationController
     user_message = params[:message]
     
     begin
-      python_ai_url = ENV['PYTHON_AI_URL'] || 'http://localhost:5000'
+      python_ai_url = ENV['PYTHON_AI_URL'] || 'http://python-ai:8000'
       timeout = ENV['AI_SERVICE_TIMEOUT']&.to_i || 120
       
       connection = Faraday.new(url: python_ai_url) do |f|
@@ -16,7 +16,10 @@ class ChatsController < ApplicationController
         f.options.open_timeout = 10
       end
       
-      response = connection.post("/chat", { message: user_message }.to_json, "Content-Type" => "application/json")
+      response = connection.post("/chat", { 
+        message: user_message, 
+        user_id: current_user&.id&.to_s 
+      }.to_json, "Content-Type" => "application/json")
       ai_response = JSON.parse(response.body)["response"] rescue "Sorry, I couldn't process your request."
     rescue Faraday::ConnectionFailed, Errno::ECONNREFUSED => e
       Rails.logger.error "AI service connection failed: #{e.message}"
