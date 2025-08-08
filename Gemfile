@@ -41,7 +41,7 @@ gem 'whenever', require: false
 gem "redis", "~> 4.0"
 
 # Use Sidekiq for background processing [https://sidekiq.org]
-gem "sidekiq", "~> 6.0"
+gem "sidekiq", "~> 8.0"
 
 # Use Stripe for payment processing [https://stripe.com/docs/api]
 gem "stripe", "~> 5.0"
