@@ -77,6 +77,7 @@ services:
 
   # Rails web application
   web:
+    profiles: ["build"]
     build:
       context: .
       dockerfile: Dockerfile
@@ -93,6 +94,32 @@ services:
       - ./storage:/rails/storage
       - ./log:/rails/log
       - static_files:/rails/public  # Share static files with Nginx
+    restart: unless-stopped
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  web-pull:
+    profiles: ["pull"]
+    image: tbob068/pirate_on_rails:web
+    expose:
+      - "3000"
+    environment:
+      - RAILS_ENV=production
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-your_secure_password_here}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./storage:/rails/storage
+      - ./log:/rails/log
+      - static_files:/rails/public
     restart: unless-stopped
     env_file:
       - .env
@@ -127,25 +154,52 @@ services:
 
   # Python AI Microservice
   python-ai:
+    profiles: ["build"]
     build:
       context: ./python-ai-service
       dockerfile: Dockerfile
     expose:
-      - "8000"  # Changed from ports to expose since Nginx will proxy
+      - "8000"
     environment:
       - SERIES_DATA_URL=http://web:3000/chats/series_data
       - RAILS_HISTORY_URL=http://web:3000/chats/history
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
       web:
-        condition: service_healthy  # Wait for Rails to be fully ready
+        condition: service_healthy
       redis:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
     volumes:
-      - ai_models:/app/models  # For caching ML models
-      - ai_data:/app/data      # For FAISS indices
+      - ai_models:/app/models
+      - ai_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  python-ai-pull:
+    profiles: ["pull"]
+    image: tbob068/pirate_on_rails:python-ai
+    expose:
+      - "8000"
+    environment:
+      - SERIES_DATA_URL=http://web:3000/chats/series_data
+      - RAILS_HISTORY_URL=http://web:3000/chats/history
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      web-pull:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ai_models:/app/models
+      - ai_data:/app/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
