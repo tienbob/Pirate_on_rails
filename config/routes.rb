@@ -10,7 +10,9 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # Devise routes for User authentication
-  devise_for :users, sign_out_via: [:get, :delete]
+  devise_for :users, controllers: {
+    registrations: 'users/registrations'
+  }, sign_out_via: [:get, :delete]
   # Mount Action Cable at /cable for WebSocket support
   mount ActionCable.server => '/cable'
 
