@@ -300,10 +300,6 @@ GEM
       rack (>= 2.0.0)
     rack-mini-profiler (4.0.1)
       rack (>= 1.2.0)
-    rack-protection (4.1.1)
-      base64 (>= 0.1.0)
-      logger (>= 1.6.0)
-      rack (>= 3.0.0, < 4)
     rack-session (2.1.1)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -345,7 +341,10 @@ GEM
     rdoc (6.14.2)
       erb
       psych (>= 4.0.0)
-    redis (4.8.1)
+    redis (5.4.1)
+      redis-client (>= 0.22.0)
+    redis-client (0.25.2)
+      connection_pool
     regexp_parser (2.10.0)
     reline (0.6.1)
       io-console (~> 0.5)
@@ -397,11 +396,12 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 3.0)
       websocket (~> 1.0)
-    sidekiq (6.0.4)
-      connection_pool (>= 2.2.2)
-      rack (>= 2.0.0)
-      rack-protection (>= 2.0.0)
-      redis (>= 4.1.0)
+    sidekiq (7.3.9)
+      base64
+      connection_pool (>= 2.3.0)
+      logger
+      rack (>= 2.2.4)
+      redis-client (>= 0.22.2)
     solid_cable (3.0.11)
       actioncable (>= 7.2)
       activejob (>= 7.2)
@@ -499,10 +499,10 @@ DEPENDENCIES
   rack-cors (~> 1.1)
   rack-mini-profiler
   rails (~> 8.0.2)
-  redis (~> 4.0)
+  redis
   rubocop (~> 1.0)
   selenium-webdriver
-  sidekiq (~> 6.0)
+  sidekiq
   solid_cable
   solid_cache
   solid_queue

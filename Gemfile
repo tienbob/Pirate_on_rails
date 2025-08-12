@@ -37,11 +37,8 @@ gem "thruster", require: false
 
 gem 'whenever', require: false
 
-# Use Redis for caching and background jobs [https://redis.io/]
-gem "redis", "~> 4.0"
-
-# Use Sidekiq for background processing [https://sidekiq.org]
-gem "sidekiq", "~> 6.0"
+gem "sidekiq"
+gem "redis"
 
 # Use Stripe for payment processing [https://stripe.com/docs/api]
 gem "stripe", "~> 5.0"

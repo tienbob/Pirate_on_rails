@@ -32,5 +32,7 @@ module PirateOnRails
     
     # Allow longer timeouts for large uploads
     config.force_ssl = false # We handle SSL in Nginx
+
+    config.active_support.report_deprecations = false
   end
 end

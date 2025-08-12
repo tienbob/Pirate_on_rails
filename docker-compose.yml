@@ -207,6 +207,50 @@ services:
       timeout: 10s
       retries: 3
 
+  sidekiq:
+    profiles: ["build"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bundle exec sidekiq 2>/dev/null
+    environment:
+      - RAILS_ENV=production
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-your_secure_password_here}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./storage:/rails/storage
+      - ./log:/rails/log
+      - static_files:/rails/public
+    restart: unless-stopped
+    env_file:
+      - .env
+
+  sidekiq-pull:
+    profiles: ["pull"]
+    image: tbob068/pirate_on_rails:web
+    command: bundle exec sidekiq
+    environment:
+      - RAILS_ENV=production
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-your_secure_password_here}
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./storage:/rails/storage
+      - ./log:/rails/log
+      - static_files:/rails/public
+    restart: unless-stopped
+    env_file:
+      - .env
+
 volumes:
   postgres_data:
     driver: local
