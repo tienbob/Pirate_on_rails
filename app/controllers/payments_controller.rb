@@ -1,4 +1,5 @@
 require 'ostruct'
+require 'stripe_service' # Ensure the StripeService is available
 
 class PaymentsController < ApplicationController
   protect_from_forgery except: [:webhook]
@@ -10,7 +11,7 @@ class PaymentsController < ApplicationController
   # Admin: List all payments
   def index
     # Cache expensive payment statistics calculation
-    @payment_stats = Rails.cache.fetch("payment_stats_v2", expires_in: 5.minutes) do
+    @payment_stats = Rails.cache.fetch("payments:stats:v2", expires_in: 5.minutes) do
       # Use a single query with proper aggregation
       stats_data = Payment.group(:status).pluck(:status, Arel.sql('COUNT(*)'), Arel.sql('SUM(amount)'))
       
@@ -175,52 +176,23 @@ class PaymentsController < ApplicationController
 
   # Stripe Webhook endpoint with proper security
   def webhook
-    # Verify webhook signature
-    webhook_secret = Rails.application.credentials.stripe[:webhook_secret]
     payload = request.body.read
     sig_header = request.env['HTTP_STRIPE_SIGNATURE']
+    webhook_secret = Rails.application.credentials.dig(:stripe, :webhook_secret)
 
     begin
       event = Stripe::Webhook.construct_event(payload, sig_header, webhook_secret)
-    rescue JSON::ParserError => e
-      Rails.logger.error "Webhook JSON parsing failed: #{e.message}"
+      StripeWebhookHandler.process(event)
+      render json: { status: 'success' }
+    rescue Stripe::SignatureVerificationError, JSON::ParserError => e
+      Rails.logger.error "Webhook error: #{e.message}"
       head :bad_request
-      return
-    rescue Stripe::SignatureVerificationError => e
-      Rails.logger.error "Webhook signature verification failed: #{e.message}"
-      head :bad_request
-      return
+    rescue StandardError => e
+      Rails.logger.error "Unexpected webhook error: #{e.message}"
+      render json: { error: 'An unexpected error occurred.' }, status: :internal_server_error
     end
-
-    # Process the event in a transaction
-    ActiveRecord::Base.transaction do
-      case event.type
-      when 'checkout.session.completed'
-        handle_checkout_completed(event.data.object)
-      when 'customer.subscription.created'
-        handle_subscription_created(event.data.object)
-      when 'customer.subscription.updated'
-        handle_subscription_updated(event.data.object)
-      when 'customer.subscription.deleted'
-        handle_subscription_deleted(event.data.object)
-      when 'invoice.payment_succeeded'
-        handle_payment_succeeded(event.data.object)
-      when 'invoice.payment_failed'
-        handle_payment_failed(event.data.object)
-      else
-        Rails.logger.info "Unhandled webhook event: #{event.type}"
-      end
-      
-      # Clear payment caches after any webhook that might create/update payments
-      Rails.cache.delete("payment_stats_v1")
-      Rails.cache.delete_matched("payments_data_page_*")
-    end
-
-    render json: { status: 'success' }
-  rescue StandardError => e
-    Rails.logger.error "Webhook processing error: #{e.message}\n#{e.backtrace.join("\n")}"
-    head :internal_server_error
   end
+
   def upgrade
     unless current_user&.free?
       redirect_to series_index_path, alert: 'You are not eligible for upgrade.'
