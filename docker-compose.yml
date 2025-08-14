@@ -103,6 +103,8 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    command: >
+      sh -c "bin/rails db:migrate && bundle exec puma -C config/puma.rb"
 
   web-pull:
     profiles: ["pull"]
@@ -129,6 +131,8 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    command: >
+      sh -c "bin/rails db:migrate && bundle exec puma -C config/puma.rb"
 
   # Nginx reverse proxy and static file server
   nginx:

@@ -29,5 +29,10 @@ if (window.opener && !window.opener.closed) {
     // If cross-origin issues, just close the popup
     window.close();
   }
+} else {
+  // This is the main window - show cancellation message and redirect after delay
+  setTimeout(function() {
+    window.location.href = '/series';
+  }, 1000);
 }
 </script>

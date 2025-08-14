@@ -4,7 +4,9 @@ class Api::AnalyticsController < ApplicationController
   protect_from_forgery with: :null_session
   
   def track_view
-    @movie = Movie.find(params[:movie_id])
+    permitted_params = params.permit(:movie_id, :watch_duration, :completed_viewing, :current_time, :total_duration, :timestamp)
+
+    @movie = Movie.find(permitted_params[:movie_id])
     
     # Verify user can view this movie
     unless @movie.viewable_by?(current_user)
@@ -12,16 +14,28 @@ class Api::AnalyticsController < ApplicationController
       return
     end
     
+    Rails.logger.info "Tracking view for user: \\#{current_user.id}, movie: \\#{@movie.id}, viewed_at: \\#{Time.zone.today}"
+    Rails.logger.info "Params received: \\#{permitted_params.inspect}"
+    
+    # Log the existing record if found
+    existing_record = ViewAnalytic.find_by(user: current_user, movie: @movie, viewed_at: Time.zone.today)
+    Rails.logger.info "Existing record: \\#{existing_record.inspect}" if existing_record
+    
     # Create or update view analytics
     view_analytic = ViewAnalytic.find_or_initialize_by(
       user: current_user,
       movie: @movie,
-      viewed_at: Date.current
+      viewed_at: Time.zone.today # Use Time.zone.today for consistency
     )
     
     # Update watch duration (cumulative for the day)
-    view_analytic.watch_duration = (view_analytic.watch_duration || 0) + (params[:watch_duration]&.to_i || 0)
-    view_analytic.completed_viewing = params[:completed_viewing] == 'true' || params[:completed_viewing] == true
+    view_analytic.watch_duration = (view_analytic.watch_duration || 0) + (permitted_params[:watch_duration]&.to_i || 0)
+
+    # Ensure completed_viewing is updated correctly
+    if permitted_params[:completed_viewing].to_s == 'true'
+      view_analytic.completed_viewing = true
+    end
+
     view_analytic.ip_address = request.remote_ip
     view_analytic.user_agent = request.user_agent&.truncate(255)
     

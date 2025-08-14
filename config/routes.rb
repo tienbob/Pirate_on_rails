@@ -61,6 +61,7 @@ Rails.application.routes.draw do
   post 'payments/create_checkout_session', to: 'payments#create_checkout_session', as: :create_checkout_session_payments
   get 'payments/create_portal_session', to: 'payments#create_portal_session', as: :create_portal_session_payments
   post 'payments/create_portal_session', to: 'payments#create_portal_session'
+  post 'payments/manual_sync', to: 'payments#manual_sync', as: :manual_sync_payments
   
   resources :users, only: [:index, :new, :create, :show, :edit, :update, :destroy]
   resources :payments, only: [:index, :show, :new, :create]

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_05_094521) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_14_000001) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -73,18 +73,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_05_094521) do
     t.index ["series_id"], name: "index_movies_on_series_id"
   end
 
-  create_table "payment_events", force: :cascade do |t|
-    t.integer "payment_id", null: false
-    t.string "event_type", null: false
-    t.text "event_data"
-    t.string "source"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["event_type"], name: "index_payment_events_on_event_type"
-    t.index ["payment_id", "created_at"], name: "index_payment_events_on_payment_id_and_created_at"
-    t.index ["payment_id"], name: "index_payment_events_on_payment_id"
-  end
-
   create_table "payments", force: :cascade do |t|
     t.integer "user_id", null: false
     t.decimal "amount", precision: 10, scale: 2
@@ -145,7 +133,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_05_094521) do
     t.string "name"
     t.string "role"
     t.string "email"
-    t.string "password_digest"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "encrypted_password", default: "", null: false
@@ -182,7 +169,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_05_094521) do
   add_foreign_key "movie_tags", "movies"
   add_foreign_key "movie_tags", "tags"
   add_foreign_key "movies", "series"
-  add_foreign_key "payment_events", "payments"
   add_foreign_key "payments", "users"
   add_foreign_key "view_analytics", "movies"
   add_foreign_key "view_analytics", "users"
