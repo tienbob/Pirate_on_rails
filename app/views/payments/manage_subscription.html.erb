@@ -81,10 +81,20 @@
                       <i class="fas fa-exclamation-triangle mr-1 fa-xs"></i>
                       Cancelling
                     </span>
-                  <% else %>
+                  <% elsif @subscription_info[:status] == 'cancelled' %>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-200 text-gray-800">
+                      <i class="fas fa-times mr-1 fa-xs"></i>
+                      Cancelled
+                    </span>
+                  <% elsif @subscription_info[:status] == 'active' %>
                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                       <i class="fas fa-check mr-1 fa-xs"></i>
                       Active
+                    </span>
+                  <% else %>
+                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-300 text-gray-900">
+                      <i class="fas fa-question-circle mr-1 fa-xs"></i>
+                      <%= @subscription_info[:status].to_s.titleize.presence || 'Unknown' %>
                     </span>
                   <% end %>
                 </div>
@@ -157,35 +167,23 @@
                 <% end %>
               </div>
             <% else %>
-              <!-- Active Subscription - Allow Cancellation -->
+              <!-- Active Subscription - No Cancel Button, Info Only -->
               <div class="flex items-center mb-3">
                 <div class="flex-shrink-0">
-                  <div class="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-times text-red-600"></i>
+                  <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-info-circle text-blue-600"></i>
                   </div>
                 </div>
               </div>
-              <div class="bg-red-50 border border-red-200 rounded-lg p-3 mb-3">
-                <p class="text-sm text-red-700 mb-2">
-                  <strong>What happens if you cancel?</strong><br>
-                  You will keep full Pro access until <span class="font-semibold text-red-800"><%= @subscription_info[:next_billing_date].present? ? @subscription_info[:next_billing_date].strftime('%B %d, %Y') : 'N/A' %></span>.<br>
-                  After this date, your account will automatically switch to the Free plan.<br>
-                  You can reactivate Pro anytime from your dashboard.
+              <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                <p class="text-sm text-blue-700 mb-2">
+                  <strong>To manage or cancel your subscription, please use the Billing Portal.</strong><br>
+                  You can update payment methods, download invoices, and handle all subscription changes securely via Stripe.
                 </p>
                 <p class="text-xs text-gray-700 mb-2">
                   Need more info? <a href="#" class="underline text-blue-600 hover:text-blue-800">See Subscription FAQs</a> or <a href="#" class="underline text-blue-600 hover:text-blue-800">Contact Support</a>.
                 </p>
-                <p class="text-xs text-gray-500">
-                  <i class="fas fa-info-circle mr-1"></i> Cancellation only affects future renewals. You will not be charged again unless you reactivate.
-                </p>
               </div>
-              <%= form_with url: cancel_subscription_path, method: :post, local: true, 
-                  data: { 
-                    confirm: "⚠️ Are you sure you want to cancel?\n\nYou'll lose Pro features at the end of your billing period." 
-                  } do |form| %>
-                <%= form.submit "Cancel Subscription", 
-                    class: "inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-gray-900 text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2" %>
-              <% end %>
             <% end %>
           </div>
         </div>

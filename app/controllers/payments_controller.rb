@@ -101,7 +101,7 @@ class PaymentsController < ApplicationController
     
     payload = request.body.read
     sig_header = request.env['HTTP_STRIPE_SIGNATURE']
-    webhook_secret = Rails.application.credentials.dig(:stripe, :webhook_secret)
+    webhook_secret = ENV['STRIPE_WEBHOOK_SECRET']  # Use environment variable
 
     Rails.logger.info "Webhook secret present: #{webhook_secret.present?}"
     Rails.logger.info "Payload preview: #{payload[0..100]}..." if payload.length > 0

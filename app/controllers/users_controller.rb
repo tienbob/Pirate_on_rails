@@ -60,7 +60,7 @@ class UsersController < ApplicationController
       Rails.cache.delete("users_admin_count")
       Rails.cache.delete("users_pro_count")
       Rails.cache.delete("users_free_count")
-      UserMailerJob.perform_later(@user.id)
+      UserMailerJob.perform_later(@user.id, 'welcome')
       redirect_to @user, notice: 'User was successfully created.'
     else
       render :new

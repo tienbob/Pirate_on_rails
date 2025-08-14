@@ -2,10 +2,8 @@ class Payment < ApplicationRecord
   belongs_to :user
 
   validates :amount, presence: true, numericality: { greater_than: 0 }
-  validates :status, presence: true, inclusion: { 
-    in: %w[completed failed refunded cancelled],
-    message: "%{value} is not a valid status" 
-  }
+  # Accept any status string from Stripe or custom logic
+  validates :status, presence: true, length: { maximum: 32 }, format: { with: /\A[a-z_]+\z/i, message: "%{value} is not a valid status format" }
   validates :user_id, presence: true
   validates :currency, presence: true, inclusion: { 
     in: %w[usd eur gbp sgd],
