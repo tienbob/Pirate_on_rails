@@ -68,7 +68,7 @@ gem "pundit", "~> 2.0"
 gem "active_model_serializers", "~> 0.10"
 
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS) 
-gem "rack-cors", "~> 1.1"
+gem "rack-cors", "~> 3.0"
 
 # Use Mailgun for email delivery [https://www.mailgun.com]
 gem "mailgun-ruby", "~> 1.2"
