@@ -15,6 +15,8 @@ Rails.application.routes.draw do
   }, sign_out_via: [:get, :delete]
   # Mount Action Cable at /cable for WebSocket support
   mount ActionCable.server => '/cable'
+  # Mount SubscriptionChannel for real-time updates
+  mount ActionCable.server => '/subscriptions'
 
   devise_scope :user do
     authenticated :user do
