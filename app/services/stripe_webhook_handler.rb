@@ -53,7 +53,7 @@ class StripeWebhookHandler
     Rails.logger.info "Subscription created for user: #{user.id}"
 
     # Send pro upgrade email
-    UserMailerJob.perform_later(user.id, 'pro_upgrade', payment.id)
+    UserMailerJob.perform_later(user_id: user.id, email_type: 'pro_upgrade', payment_id: payment.id)
 
     SubscriptionChannel.broadcast_to(user, {
       type: 'subscription_created',
@@ -110,7 +110,7 @@ class StripeWebhookHandler
 
     # Send pro upgrade email if user is still pro and not cancelling
     if user_role == 'pro' && local_status == 'active'
-      UserMailerJob.perform_later(user.id, 'pro_upgrade', payment.id)
+      UserMailerJob.perform_later(user_id: user.id, email_type: 'pro_upgrade', payment_id: payment.id)
     end
 
     SubscriptionChannel.broadcast_to(user, {
@@ -177,7 +177,7 @@ class StripeWebhookHandler
     Rails.logger.info "Payment succeeded for user: #{user.id}"
 
     # Send pro upgrade email for recurring payment
-    UserMailerJob.perform_later(user.id, 'pro_upgrade', payment.id)
+  UserMailerJob.perform_later(user_id: user.id, email_type: 'pro_upgrade', payment_id: payment.id)
 
     SubscriptionChannel.broadcast_to(user, {
       type: 'payment_succeeded',

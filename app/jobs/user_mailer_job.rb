@@ -1,7 +1,10 @@
 class UserMailerJob < ApplicationJob
   queue_as :default
 
-  def perform(user_id, email_type, payment_id = nil)
+  def perform(args)
+    user_id = args[:user_id]
+    email_type = args[:email_type]
+    payment_id = args[:payment_id]
     user = User.find(user_id)
 
     case email_type
