@@ -17,8 +17,12 @@ class SeriesController < ApplicationController
   def index
     page = (params[:page] || 1).to_i
     per_page = 8
-    
-    if params[:search_type] == 'episode' && (params[:q].present? || params[:tags].present?)
+
+    # Treat empty search params as no search
+    q_blank = !params[:q].present? || params[:q].strip == ""
+    tags_blank = !params[:tags].present? || Array(params[:tags]).all? { |t| t.blank? }
+
+    if params[:search_type] == 'episode' && (!q_blank || !tags_blank)
       movies = search_movies(params)
       @movies = policy_scope(movies).page(page).per(per_page)
       @series = [] # Prevent nil error in _results.html.erb
@@ -26,36 +30,36 @@ class SeriesController < ApplicationController
         format.html { render :index }
         format.turbo_stream { render partial: 'movies/results', locals: { movies: @movies } }
       end
-    elsif params[:q].present? || params[:tags].present?
+    elsif (!q_blank || !tags_blank)
       # Efficient search with proper pagination - avoid loading all records
       search_scope = policy_scope(search_series(params))
-      
+
       # Apply ordering and pagination directly to the relation
       @series = search_scope
         .order(updated_at: :desc)
         .page(page)
         .per(per_page)
-        
+
       # Initialize empty hash for image URLs - we'll populate in the view as needed
       @series_image_urls = {}
     else
       # Use optimized queries - REMOVED expensive eager loading of all movies
       series_scope = policy_scope(Series.all)
-      
+
       # Cache total count separately to avoid N+1 queries
       total_count = Rails.cache.fetch("series_total_count", expires_in: 30.minutes) do
         series_scope.count
       end
-      
+
       # Get paginated series with minimal necessary eager loading
       @series = series_scope
         .order(updated_at: :desc)
         .page(page)
         .per(per_page)
-        
+
       # Set total count for Kaminari pagination
       @series.instance_variable_set(:@total_count, total_count)
-      
+
       # Initialize empty hash for image URLs - we'll populate in the view as needed
       @series_image_urls = {}
     end
