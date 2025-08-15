@@ -11,7 +11,7 @@ Rails.application.routes.draw do
 
   # Devise routes for User authentication
   devise_for :users, controllers: {
-    registrations: 'users/registrations'
+    registrations: 'registrations'
   }, sign_out_via: [:get, :delete]
   # Mount Action Cable at /cable for WebSocket support
   mount ActionCable.server => '/cable'
@@ -39,16 +39,10 @@ Rails.application.routes.draw do
   # Direct video streaming route for maximum performance
   get '/stream/movie/:movie_id', to: 'video_stream#show', as: :direct_video_stream
   
-  # API routes for analytics and tracking
-  namespace :api do
-    post 'track_view', to: 'analytics#track_view'
-    resources :analytics, only: [] do
-      collection do
-        get 'dashboard'
-        get 'movie_stats'
-      end
-    end
-  end
+  # Analytics routes (moved out of API namespace)
+  post 'track_view', to: 'analytics#track_view'
+  get 'analytics/dashboard', to: 'analytics#dashboard'
+  get 'analytics/movie_stats', to: 'analytics#movie_stats'
   
   # Optionally, add a custom admin-only index if needed:
   # get 'movies', to: 'movies#index', as: :admin_movies, constraints: ->(req) { req.env['warden'].user&.admin? }
