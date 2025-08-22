@@ -5,8 +5,6 @@ class User < ApplicationRecord
     self.role ||= 'free'
   end
 
-  # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable, :trackable and :omniauthable
   devise :database_authenticatable, :registerable, :recoverable, 
          :rememberable, :validatable, :timeoutable, :confirmable
 
@@ -86,5 +84,9 @@ class User < ApplicationRecord
         { previous_role: 'pro', new_role: 'free' }
       ) if latest_payment
     end
+  end
+
+  def after_confirmation
+    UserMailer.welcome_email(self).deliver_later
   end
 end

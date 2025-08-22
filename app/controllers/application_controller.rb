@@ -53,7 +53,8 @@ class ApplicationController < ActionController::Base
     # Log the error with context
     Rails.logger.error "Standard Error: #{exception.message}"
     Rails.logger.error "Backtrace: #{exception.backtrace.join("\n")}"
-    Rails.logger.error "User: #{current_user&.email || 'Anonymous'}"
+    user_email = respond_to?(:current_user) && current_user ? current_user.email : 'Anonymous'
+    Rails.logger.error "User: #{user_email}"
     Rails.logger.error "Request: #{request.method} #{request.url}"
     Rails.logger.error "Params: #{params.inspect}"
     

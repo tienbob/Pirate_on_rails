@@ -102,7 +102,7 @@ namespace :subscriptions do
       })
 
       # Find active subscription
-      active_subscription = subscriptions.data.find { |sub| %w[active trialing].include?(sub.status) }
+      active_subscription = subscriptions.data.find_by { |sub| %w[active trialing].include?(sub.status) }
       
       if active_subscription
         # User has active subscription, should be pro

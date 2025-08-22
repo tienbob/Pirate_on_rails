@@ -1,4 +1,4 @@
-class Api::AnalyticsController < ApplicationController
+class AnalyticsController < ApplicationController
   before_action :authenticate_user!
   before_action :check_rate_limit
   protect_from_forgery with: :null_session

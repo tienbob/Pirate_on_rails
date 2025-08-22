@@ -1,3 +1,2 @@
 mail verify 
-view devise remove unessessary 
 debug on docker
