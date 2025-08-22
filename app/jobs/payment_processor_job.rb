@@ -2,8 +2,7 @@ class PaymentProcessorJob < ApplicationJob
   queue_as :critical
 
   def perform(payment_id, action)
-    payment = Payment.find(payment_id)
-    
+    payment = Payment.find_by(id: payment_id)
     case action
     when 'process_upgrade'
       process_user_upgrade(payment)

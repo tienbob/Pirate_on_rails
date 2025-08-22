@@ -103,6 +103,6 @@ class TagsController < ApplicationController
   end
 
   def set_tag
-    @tag = Tag.find(params[:id])
+    @tag = Tag.find_by(id: params[:id])
   end
 end

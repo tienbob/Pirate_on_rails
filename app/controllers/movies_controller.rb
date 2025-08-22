@@ -43,7 +43,7 @@ class MoviesController < ApplicationController
     @movie = Rails.cache.fetch(cache_key, expires_in: CACHE_EXPIRY) do
       movie = policy_scope(Movie)
                 .includes(:tags, :series, video_file_attachment: :blob)
-                .find(params[:id])
+                .find_by(id: params[:id])
       authorize movie
       movie
     end
@@ -135,7 +135,7 @@ class MoviesController < ApplicationController
   end
 
   def set_movie
-    @movie = Movie.includes(:series).find(params[:id])
+    @movie = Movie.includes(:series).find_by(id: params[:id])
   end
   
   def check_rate_limit

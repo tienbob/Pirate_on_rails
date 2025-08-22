@@ -1,11 +1,13 @@
 require 'ostruct'
 
+
+
 class UsersController < ApplicationController
   before_action :authenticate_user!
   before_action :require_admin, only: [:index, :destroy]
   
   def edit
-    @user = User.find(params[:id])
+    @user = User.find_by(id: params[:id])
     unless current_user.admin? || current_user == @user
       redirect_to user_path(current_user), alert: "Access denied."
     end
@@ -45,30 +47,20 @@ class UsersController < ApplicationController
   end
 
   def show
-    @user = User.find(params[:id])
+    @user = User.find_by(id: params[:id])
   end
+
 
   def new
     @user = User.new
   end
 
-  def create
-    @user = User.new(user_params)
-    if @user.save
-      # Clear users cache when new user is created
-      Rails.cache.delete("users_total_count")
-      Rails.cache.delete("users_admin_count")
-      Rails.cache.delete("users_pro_count")
-      Rails.cache.delete("users_free_count")
-      UserMailerJob.perform_later(@user.id, 'welcome')
-      redirect_to @user, notice: 'User was successfully created.'
-    else
-      render :new
-    end
-  end
+
+  # Use Devise's registration controller for user creation and confirmation
+  # Remove custom create logic
   
   def update
-    @user = User.find(params[:id])
+    @user = User.find_by(id: params[:id])
     if current_user.admin?
       permitted = user_params
     elsif current_user == @user
@@ -90,7 +82,7 @@ class UsersController < ApplicationController
   end
   
   def destroy
-    @user = User.find(params[:id])
+    @user = User.find_by(id: params[:id])
     authorize @user
     if @user.destroy    
       # Clear users cache when user is deleted

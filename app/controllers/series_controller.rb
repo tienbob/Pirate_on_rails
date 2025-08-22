@@ -69,7 +69,7 @@ class SeriesController < ApplicationController
     # Use cached query to avoid repeated database hits - simplified includes
     cache_key = "series_#{params[:id]}_with_tags_only"
     @series = Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
-      Series.includes(:tags).find(params[:id])  # Removed movies eager loading
+      Series.includes(:tags).find_by(id: params[:id])  # Removed movies eager loading
     end
     
     # Optimize episodes query with cached pagination data
@@ -114,12 +114,12 @@ class SeriesController < ApplicationController
 
   def edit
     authorize Series
-    @series = Series.find(params[:id])
+    @series = Series.find_by(id: params[:id])
   end
 
   def update
     authorize Series
-    @series = Series.find(params[:id])
+    @series = Series.find_by(id: params[:id])
     if @series.update(series_params)
       # After updating series tags, update all its movies to have the full set of series tags (plus any unique movie tags)
       @series.movies.find_each do |movie|
@@ -138,7 +138,7 @@ class SeriesController < ApplicationController
 
   def destroy
     authorize Series
-    @series = Series.find(params[:id])
+    @series = Series.find_by(id: params[:id])
     expire_series_cache(@series)
     expire_series_index_cache
     @series.destroy

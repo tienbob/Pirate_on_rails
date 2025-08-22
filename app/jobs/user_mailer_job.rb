@@ -5,7 +5,7 @@ class UserMailerJob < ApplicationJob
     user_id = args[:user_id]
     email_type = args[:email_type]
     payment_id = args[:payment_id]
-    user = User.find(user_id)
+    user = User.find_by(id: user_id)
 
     case email_type
     when 'welcome'

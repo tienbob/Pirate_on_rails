@@ -10,7 +10,6 @@ import SeriesFormController from "controllers/series_form_controller"
 import FormValidationController from "controllers/form_validation_controller"
 import VideoAnalyticsController from "controllers/video_analytics_controller"
 import FileUploadController from "controllers/file_upload_controller"
-import SubscriptionChannelController from "controllers/subscription_channel_controller"
 
 const application = Application.start()
 application.register("payment", PaymentController)
@@ -22,7 +21,6 @@ application.register("series-form", SeriesFormController)
 application.register("form-validation", FormValidationController)
 application.register("video-analytics", VideoAnalyticsController)
 application.register("file-upload", FileUploadController)
-application.register("subscription-channel", SubscriptionChannelController)
 // Initialize Action Cable and assign to window.App.cable for global access
 import { createConsumer } from "@rails/actioncable";
 window.App ||= {};

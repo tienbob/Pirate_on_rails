@@ -29,7 +29,7 @@ class VideoStreamController < ApplicationController
     # Use caching to avoid repeated database queries
     cache_key = "movie_video_#{params[:movie_id]}_#{current_user.id}"
     @movie = Rails.cache.fetch(cache_key, expires_in: 10.minutes) do
-      Movie.includes(video_file_attachment: :blob).find(params[:movie_id])
+      Movie.includes(video_file_attachment: :blob).find_by(id: params[:movie_id])
     end
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Movie not found' }, status: :not_found

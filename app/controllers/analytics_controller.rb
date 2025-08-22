@@ -6,7 +6,7 @@ class Api::AnalyticsController < ApplicationController
   def track_view
     permitted_params = params.permit(:movie_id, :watch_duration, :completed_viewing, :current_time, :total_duration, :timestamp)
 
-    @movie = Movie.find(permitted_params[:movie_id])
+  @movie = Movie.find_by(id: permitted_params[:movie_id])
     
     # Verify user can view this movie
     unless @movie.viewable_by?(current_user)

@@ -242,7 +242,7 @@ class PaymentsController < ApplicationController
     end
 
     user_id = params[:user_id] || current_user.id
-    user = User.find(user_id)
+    user = User.find_by(id: user_id)
     
     result = StripeManualSyncService.sync_user_subscription(user)
     
@@ -268,7 +268,7 @@ class PaymentsController < ApplicationController
   end
 
   def set_payment
-    @payment = Payment.find(params[:id])
+    @payment = Payment.find_by(id: params[:id])
   end
   
   def check_rate_limit
