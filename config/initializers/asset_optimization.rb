@@ -7,7 +7,6 @@ Rails.application.configure do
   # Asset precompilation for cinema bundle
   if Rails.env.production?
     config.assets.precompile += %w[
-      cinema_bundle.css
       application.css
       *.png *.jpg *.jpeg *.gif *.svg
     ]
@@ -38,15 +37,6 @@ class AssetOptimizationMiddleware
       headers['X-Content-Type-Options'] = 'nosniff'
       headers['Cache-Control'] = 'public, max-age=31536000, immutable' # 1 year
     end
-    
-    # Temporarily disable preload hints to fix browser warnings
-    # if env['PATH_INFO'] == '/' || env['PATH_INFO'].include?('/movies')
-    #   link_header = [
-    #     '</assets/cinema_bundle.css>; rel=preload; as=style',
-    #     '</assets/application.js>; rel=preload; as=script'
-    #   ].join(', ')
-    #   headers['Link'] = link_header
-    # end
     
     [status, headers, response]
   end
