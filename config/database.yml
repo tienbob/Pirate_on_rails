@@ -1,24 +1,15 @@
 default: &default
-  adapter: postgresql
-  encoding: unicode
+  adapter: sqlite3
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   timeout: 5000
 
 development:
   <<: *default
-  database: pirate_on_rails_development
-  username: postgres
-  password: postgres
-  host: localhost
-  port: 5432
+  database: db/development.sqlite3
 
 test:
   <<: *default
-  database: pirate_on_rails_test
-  username: postgres
-  password: postgres
-  host: localhost
-  port: 5432
+  database: db/test.sqlite3
 
 production:
   primary: &primary_production

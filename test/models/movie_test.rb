@@ -10,10 +10,20 @@ class MovieTest < ActiveSupport::TestCase
   end
 
   test "belongs to series optionally" do
-    # Create series without factory to avoid MessageVerifier issues
-    series = Series.create!(title: "Test Series", description: "Test description")
-    movie = Movie.new(title: 'A', description: 'Desc longer than ten', release_date: Date.today, is_pro: false, video_file: "file.mp4", series: series)
-    assert movie.valid?
+    # Create series without img to avoid ActiveStorage issues
+    series = Series.create!(
+      title: "Test Series", 
+      description: "Test description"
+    )
+    
+    movie = Movie.create!(
+      title: 'Test Movie', 
+      description: 'Description longer than ten characters', 
+      release_date: Date.today, 
+      is_pro: false, 
+      series: series
+    )
+    
     assert_equal series, movie.series
   end
 end

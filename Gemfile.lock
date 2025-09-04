@@ -186,6 +186,12 @@ GEM
       domain_name (~> 0.5)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
+    importmap (0.1.0)
+      activesupport
+      memoist
+      rainbow
+      thor
+      zeitwerk
     importmap-rails (2.1.0)
       actionpack (>= 6.0.0)
       activesupport (>= 6.0.0)
@@ -235,6 +241,7 @@ GEM
       rest-client (>= 2.0.2)
     marcel (1.0.4)
     matrix (0.4.3)
+    memoist (0.16.2)
     method_source (1.1.0)
     mime-types (3.7.0)
       logger
@@ -243,6 +250,8 @@ GEM
     mini_mime (1.1.5)
     mini_portile2 (2.8.9)
     minitest (5.25.5)
+    mock_redis (0.52.0)
+      redis (~> 5)
     msgpack (1.8.0)
     multi_json (1.16.0)
     multipart-post (2.4.1)
@@ -393,9 +402,26 @@ GEM
     rubocop-ast (1.45.1)
       parser (>= 3.3.7.2)
       prism (~> 1.4)
+    rubocop-performance (1.25.0)
+      lint_roller (~> 1.1)
+      rubocop (>= 1.75.0, < 2.0)
+      rubocop-ast (>= 1.38.0, < 2.0)
+    rubocop-rails (2.33.3)
+      activesupport (>= 4.2.0)
+      lint_roller (~> 1.1)
+      rack (>= 1.1)
+      rubocop (>= 1.75.0, < 2.0)
+      rubocop-ast (>= 1.44.0, < 2.0)
+    rubocop-rails-omakase (1.1.0)
+      rubocop (>= 1.72)
+      rubocop-performance (>= 1.24)
+      rubocop-rails (>= 2.30)
     ruby-progressbar (1.13.0)
     ruby2_keywords (0.0.5)
     rubyzip (2.4.1)
+    searchkick (5.5.2)
+      activemodel (>= 7.1)
+      hashie
     securerandom (0.4.1)
     selenium-webdriver (4.34.0)
       base64 (~> 0.2)
@@ -494,10 +520,12 @@ DEPENDENCIES
   factory_bot_rails
   faraday (~> 1.0)
   fiddle
+  importmap
   importmap-rails
   kamal
   kaminari (~> 1.2)
   mailgun-ruby (~> 1.2)
+  mock_redis
   nokogiri (~> 1.12)
   pg
   propshaft
@@ -510,6 +538,8 @@ DEPENDENCIES
   rails (~> 8.0.2)
   redis
   rubocop (~> 1.0)
+  rubocop-rails-omakase
+  searchkick
   selenium-webdriver
   sidekiq
   solid_cable

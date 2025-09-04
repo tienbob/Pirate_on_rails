@@ -59,14 +59,20 @@ class UsersController < ApplicationController
   
   def update
     @user = User.find_by(id: params[:id])
+    
     if current_user.admin?
+      # Handle role separately for admins to avoid mass assignment warnings
       permitted = user_params
+      if params[:user][:role].present?
+        @user.role = params[:user][:role] if %w[free pro admin].include?(params[:user][:role])
+      end
     elsif current_user == @user
-      permitted = params.require(:user).permit(:email, :password, :password_confirmation)
+      permitted = user_params
     else
       redirect_to user_path(current_user), alert: "Access denied."
       return
     end
+    
     if @user.update(permitted)
       # Clear users cache when user is updated
       Rails.cache.delete("users_total_count")
@@ -97,7 +103,8 @@ class UsersController < ApplicationController
   private
 
   def user_params
-    params.require(:user).permit(:name, :email, :password, :password_confirmation, :role)
+    # Only allow safe parameters for mass assignment
+    params.require(:user).permit(:name, :email, :password, :password_confirmation)
   end
 
   def require_admin

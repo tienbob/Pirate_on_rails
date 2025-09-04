@@ -108,7 +108,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_22_023212) do
     t.index ["tag_id", "series_id"], name: "index_series_tags_on_tag_id_and_series_id"
     t.index ["tag_id"], name: "index_series_tags_on_tag_id"
   end
-  
+
+# Could not dump table "sqlite_stat1" because of following StandardError
+#   Unknown type '' for column 'tbl'
+
+
   create_table "stripe_events", force: :cascade do |t|
     t.string "event_id", null: false
     t.string "event_type"

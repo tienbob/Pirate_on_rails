@@ -66,7 +66,7 @@ class MoviesController < ApplicationController
 
 
   def new
-    unless params[:series_id].present? && Series.exists?(params[:series_id])
+    unless params[:series_id].present? && Series.exists?(id: params[:series_id])
       redirect_to series_index_path, alert: 'You must select a series before adding an episode.'
       return
     end
@@ -75,7 +75,7 @@ class MoviesController < ApplicationController
   end
 
   def create
-    unless params[:movie][:series_id].present? && Series.exists?(params[:movie][:series_id])
+    unless params[:movie][:series_id].present? && Series.exists?(id: params[:movie][:series_id])
       redirect_to series_index_path, alert: 'You must select a series before adding an episode.'
       return
     end

@@ -13,12 +13,12 @@ class ViewAnalytic < ApplicationRecord
   scope :this_month, -> { where(viewed_at: 1.month.ago..Time.current) }
 
   # Analytics methods
-  def self.popular_movies(limit: 10)
-    joins(:movie)
-      .group('movies.id', 'movies.title')
-      .order('COUNT(*) DESC')
+  def self.popular_movies(limit: 5)
+    select("movie_id, COUNT(*) as views")
+      .group(:movie_id)
+      .order(Arel.sql("COUNT(*) DESC"))
       .limit(limit)
-      .pluck('movies.title', 'COUNT(*)')
+      .to_a
   end
 
   def self.user_engagement_stats(user)

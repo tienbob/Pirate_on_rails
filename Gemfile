@@ -103,7 +103,11 @@ group :test do
   gem "selenium-webdriver"
   gem 'pundit-matchers'
   gem 'factory_bot_rails'
+  gem 'searchkick'
+  gem 'mock_redis'
 end
 
-gem "pg"
+group :production do
+  gem "pg"
+end
 
