@@ -1,17 +1,17 @@
-require 'ostruct'
+require "ostruct"
 
 class TagsController < ApplicationController
   before_action :authenticate_user!
   before_action :require_admin
-  before_action :set_tag, only: [:show, :edit, :update, :destroy]
-  
+  before_action :set_tag, only: [ :show, :edit, :update, :destroy ]
+
   # Only allow admins to perform certain actions
   def require_admin
     unless current_user && current_user.admin?
       if user_signed_in?
-        redirect_to authenticated_root_path, alert: 'Access denied. Only admins can manage tags.'
+        redirect_to authenticated_root_path, alert: "Access denied. Only admins can manage tags."
       else
-        redirect_to unauthenticated_root_path, alert: 'Access denied. Only admins can manage tags.'
+        redirect_to unauthenticated_root_path, alert: "Access denied. Only admins can manage tags."
       end
     end
   end
@@ -19,12 +19,12 @@ class TagsController < ApplicationController
   def index
     # Optimized query with caching of raw data to avoid serialization issues
     page = params[:page] || 1
-    
+
     # Cache the tag IDs and metadata, not the paginated object
     cached_data = Rails.cache.fetch("tags_data_page_#{page}", expires_in: 5.minutes) do
       # Get total count first (without select to avoid COUNT() issues)
       total_count = Tag.count
-      
+
       # Get the specific page of tags with selected columns
       offset = (page.to_i - 1) * 5
       tags_data = Tag.select(:id, :name, :description, :created_at, :updated_at)
@@ -40,10 +40,10 @@ class TagsController < ApplicationController
           updated_at: tag.updated_at
         }
       end
-      
+
       { tags: tags_data, total_count: total_count, page: page.to_i, per_page: 5 }
     end
-    
+
     # Recreate the tags as OpenStruct objects for the view
     @tags = Kaminari.paginate_array(
       cached_data[:tags].map { |tag_data| OpenStruct.new(tag_data) },
@@ -65,7 +65,7 @@ class TagsController < ApplicationController
       # Clear cache after creating a new tag
       Rails.cache.delete_matched("tags_data_page_*")
       Rails.cache.delete("all_tags_for_search")  # Clear search form cache
-      redirect_to @tag, notice: 'Tag was successfully created.'
+      redirect_to @tag, notice: "Tag was successfully created."
     else
       render :new
     end
@@ -81,7 +81,7 @@ class TagsController < ApplicationController
       # Clear cache after updating a tag
       Rails.cache.delete_matched("tags_data_page_*")
       Rails.cache.delete("all_tags_for_search")  # Clear search form cache
-      redirect_to @tag, notice: 'Tag was successfully updated.'
+      redirect_to @tag, notice: "Tag was successfully updated."
     else
       render :edit
     end
@@ -93,7 +93,7 @@ class TagsController < ApplicationController
     # Clear cache after deleting a tag
     Rails.cache.delete_matched("tags_data_page_*")
     Rails.cache.delete("all_tags_for_search")  # Clear search form cache
-    redirect_to tags_path, notice: 'Tag was successfully deleted.'
+    redirect_to tags_path, notice: "Tag was successfully deleted."
   end
 
   private

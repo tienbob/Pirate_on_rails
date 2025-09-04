@@ -27,7 +27,7 @@ class ViewAnalytic < ApplicationRecord
 
   def completion_rate
     return 0 unless watch_duration && movie.respond_to?(:duration) && movie.duration
-    
+
     (watch_duration.to_f / movie.duration * 100).round(2)
   end
 end

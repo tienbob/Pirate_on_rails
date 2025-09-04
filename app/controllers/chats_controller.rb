@@ -1,24 +1,24 @@
 class ChatsController < ApplicationController
   include Searchable
-  before_action :authenticate_user!, except: [:series_data]
+  before_action :authenticate_user!, except: [ :series_data ]
   protect_from_forgery with: :null_session
 
   # 1. User chat message comes in
   def create
     user_message = params[:message]
-    
+
     begin
-      python_ai_url = ENV['PYTHON_AI_URL'] || 'http://python-ai:8000'
-      timeout = ENV['AI_SERVICE_TIMEOUT']&.to_i || 120
-      
+      python_ai_url = ENV["PYTHON_AI_URL"] || "http://python-ai:8000"
+      timeout = ENV["AI_SERVICE_TIMEOUT"]&.to_i || 120
+
       connection = Faraday.new(url: python_ai_url) do |f|
         f.options.timeout = timeout
         f.options.open_timeout = 10
       end
-      
-      response = connection.post("/chat", { 
-        message: user_message, 
-        user_id: current_user&.id&.to_s 
+
+      response = connection.post("/chat", {
+        message: user_message,
+        user_id: current_user&.id&.to_s
       }.to_json, "Content-Type" => "application/json")
       ai_response = JSON.parse(response.body)["response"] rescue "Sorry, I couldn't process your request."
     rescue Faraday::ConnectionFailed, Errno::ECONNREFUSED => e
@@ -31,16 +31,16 @@ class ChatsController < ApplicationController
       Rails.logger.error "Unexpected error in chat: #{e.message}"
       ai_response = "Sorry, something went wrong. Please try again."
     end
-    
+
     chat = Chat.create!(user_message: user_message, ai_response: ai_response, user: current_user)
-    
+
     # Broadcast to Action Cable
     ChatChannel.broadcast_to(current_user, {
       user_message: chat.user_message,
       ai_response: chat.ai_response,
       created_at: chat.created_at
     })
-    
+
     render json: { response: ai_response }
   rescue ActiveRecord::RecordInvalid => e
     Rails.logger.error "Failed to save chat: #{e.message}"

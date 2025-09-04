@@ -2,7 +2,7 @@ require "test_helper"
 
 class ChatTest < ActiveSupport::TestCase
   test "validates presence of user_message" do
-    chat = Chat.new(ai_response: '')
+    chat = Chat.new(ai_response: "")
     assert_not chat.valid?
     assert_includes chat.errors[:user_message], "can't be blank"
   end

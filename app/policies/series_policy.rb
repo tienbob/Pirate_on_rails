@@ -8,7 +8,7 @@ class SeriesPolicy < ApplicationPolicy
     # Free users can view all series (no is_pro restriction)
     user.free?
   end
-  
+
   def create?
     user.admin?
   end

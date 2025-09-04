@@ -16,9 +16,9 @@ class PaymentTest < ActiveSupport::TestCase
   end
 
   test "state helpers" do
-    p = build(:payment, status: 'completed')
+    p = build(:payment, status: "completed")
     assert p.completed?
-    p.status = 'failed'
+    p.status = "failed"
     assert p.failed?
   end
 end

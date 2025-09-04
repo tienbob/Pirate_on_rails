@@ -2,10 +2,10 @@ class User < ApplicationRecord
   after_initialize :set_default_role, if: :new_record?
 
   def set_default_role
-    self.role ||= 'free'
+    self.role ||= "free"
   end
 
-  devise :database_authenticatable, :registerable, :recoverable, 
+  devise :database_authenticatable, :registerable, :recoverable,
          :rememberable, :validatable, :timeoutable, :confirmable
 
   has_many :payments, dependent: :destroy
@@ -19,10 +19,10 @@ class User < ApplicationRecord
   validates :password, presence: true, length: { minimum: 6 }, on: :create
 
   # Scopes for better querying
-  scope :active, -> { where('last_seen_at > ?', 30.days.ago) }
-  scope :pro_users, -> { where(role: 'pro') }
-  scope :free_users, -> { where(role: 'free') }
-  scope :admins, -> { where(role: 'admin') }
+  scope :active, -> { where("last_seen_at > ?", 30.days.ago) }
+  scope :pro_users, -> { where(role: "pro") }
+  scope :free_users, -> { where(role: "free") }
+  scope :admins, -> { where(role: "admin") }
   scope :recent, -> { order(created_at: :desc) }
 
   def admin?
@@ -49,10 +49,10 @@ class User < ApplicationRecord
   def favorite_genres
     ViewAnalytic.joins(movie: :tags)
                 .where(user: self)
-                .group('tags.name')
-                .order('COUNT(*) DESC')
+                .group("tags.name")
+                .order("COUNT(*) DESC")
                 .limit(5)
-                .pluck('tags.name')
+                .pluck("tags.name")
   end
 
   # Payment methods
@@ -66,22 +66,22 @@ class User < ApplicationRecord
 
   def upgrade_to_pro!
     ActiveRecord::Base.transaction do
-      update!(role: 'pro')
+      update!(role: "pro")
       PaymentEvent.log_event(
-        latest_payment, 
-        'user_upgraded', 
-        { previous_role: 'free', new_role: 'pro' }
+        latest_payment,
+        "user_upgraded",
+        { previous_role: "free", new_role: "pro" }
       ) if latest_payment
     end
   end
 
   def downgrade_to_free!
     ActiveRecord::Base.transaction do
-      update!(role: 'free')
+      update!(role: "free")
       PaymentEvent.log_event(
-        latest_payment, 
-        'user_downgraded', 
-        { previous_role: 'pro', new_role: 'free' }
+        latest_payment,
+        "user_downgraded",
+        { previous_role: "pro", new_role: "free" }
       ) if latest_payment
     end
   end

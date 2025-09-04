@@ -13,9 +13,9 @@ class MoviePolicy < ApplicationPolicy
     # Free users can only view non-pro movies
     user.free? && !record.is_pro
   end
-  
+
   def create?
-    user.admin? 
+    user.admin?
   end
 
   def destroy?

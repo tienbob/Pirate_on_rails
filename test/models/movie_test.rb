@@ -12,18 +12,18 @@ class MovieTest < ActiveSupport::TestCase
   test "belongs to series optionally" do
     # Create series without img to avoid ActiveStorage issues
     series = Series.create!(
-      title: "Test Series", 
+      title: "Test Series",
       description: "Test description"
     )
-    
+
     movie = Movie.create!(
-      title: 'Test Movie', 
-      description: 'Description longer than ten characters', 
-      release_date: Date.today, 
-      is_pro: false, 
+      title: "Test Movie",
+      description: "Description longer than ten characters",
+      release_date: Date.today,
+      is_pro: false,
       series: series
     )
-    
+
     assert_equal series, movie.series
   end
 end

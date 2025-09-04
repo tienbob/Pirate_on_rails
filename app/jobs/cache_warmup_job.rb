@@ -3,20 +3,20 @@ class CacheWarmupJob < ApplicationJob
 
   def perform
     Rails.logger.info "Starting cache warmup..."
-    
+
     begin
       # Warm up payment statistics
       warm_payment_stats
-      
+
       # Warm up series statistics
       warm_series_stats
-      
-      # Warm up user statistics  
+
+      # Warm up user statistics
       warm_user_stats
-      
+
       # Warm up first page of critical data
       warm_critical_pages
-      
+
       Rails.logger.info "Cache warmup completed successfully"
     rescue => e
       Rails.logger.error "Cache warmup failed: #{e.message}"
@@ -29,14 +29,14 @@ class CacheWarmupJob < ApplicationJob
   def warm_payment_stats
     Rails.cache.fetch("payment_stats_v1", expires_in: 5.minutes) do
       stats = Payment.group(:status).count
-      completed_revenue = Payment.where(status: 'completed').sum(:amount) || 0
-      
+      completed_revenue = Payment.where(status: "completed").sum(:amount) || 0
+
       {
         total: Payment.count,
         completed_revenue: completed_revenue,
-        pending_count: stats['pending'] || 0,
-        failed_count: stats['failed'] || 0,
-        completed_count: stats['completed'] || 0
+        pending_count: stats["pending"] || 0,
+        failed_count: stats["failed"] || 0,
+        completed_count: stats["completed"] || 0
       }
     end
     Rails.logger.info "Warmed payment stats"
@@ -52,16 +52,16 @@ class CacheWarmupJob < ApplicationJob
   def warm_user_stats
     %w[total admin pro free].each do |type|
       count = case type
-      when 'total'
+      when "total"
         User.count
-      when 'admin'
-        User.where(role: 'admin').count
-      when 'pro'
-        User.where(role: 'pro').count
-      when 'free'
-        User.where(role: 'free').count
+      when "admin"
+        User.where(role: "admin").count
+      when "pro"
+        User.where(role: "pro").count
+      when "free"
+        User.where(role: "free").count
       end
-      
+
       Rails.cache.write("users_#{type}_count", count, expires_in: 3.minutes)
     end
     Rails.logger.info "Warmed user stats"
@@ -72,7 +72,7 @@ class CacheWarmupJob < ApplicationJob
     Rails.cache.fetch("series_index_page_1", expires_in: 10.minutes) do
       Series.includes(:tags).order(updated_at: :desc).limit(8).to_a
     end
-    
+
     # Warm first page of tags
     Rails.cache.fetch("tags_data_page_1", expires_in: 5.minutes) do
       total_count = Tag.count
@@ -88,15 +88,15 @@ class CacheWarmupJob < ApplicationJob
           updated_at: tag.updated_at
         }
       end
-      
-      { 
-        tags: tags_data, 
-        total_count: total_count, 
-        page: 1, 
-        per_page: 5 
+
+      {
+        tags: tags_data,
+        total_count: total_count,
+        page: 1,
+        per_page: 5
       }
     end
-    
+
     Rails.logger.info "Warmed critical pages"
   end
 end

@@ -8,9 +8,9 @@ class UserMailerJob < ApplicationJob
     user = User.find_by(id: user_id)
 
     case email_type
-    when 'welcome'
+    when "welcome"
       UserMailer.welcome_email(user).deliver_later
-    when 'pro_upgrade'
+    when "pro_upgrade"
       UserMailer.pro_upgrade_email(user).deliver_later
     else
       Rails.logger.warn "Unknown email type: \\#{email_type}"

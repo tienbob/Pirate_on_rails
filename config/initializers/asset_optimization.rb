@@ -3,7 +3,7 @@ Rails.application.configure do
   # HTTP/2 Server Push for critical resources
   # Disabled for Docker development - Nginx handles SSL termination
   # config.force_ssl = true if Rails.env.production?
-  
+
   # Asset precompilation for cinema bundle
   if Rails.env.production?
     config.assets.precompile += %w[
@@ -11,15 +11,15 @@ Rails.application.configure do
       *.png *.jpg *.jpeg *.gif *.svg
     ]
   end
-  
+
   # Cache configuration for assets
   config.action_controller.perform_caching = true
-  
+
   # Enable browser caching for static assets
   config.public_file_server.enabled = true
   config.public_file_server.headers = {
-    'Cache-Control' => 'public, max-age=2592000', # 30 days
-    'Expires' => 30.days.from_now.to_formatted_s(:rfc822)
+    "Cache-Control" => "public, max-age=2592000", # 30 days
+    "Expires" => 30.days.from_now.to_formatted_s(:rfc822)
   } if Rails.env.production?
 end
 
@@ -31,14 +31,14 @@ class AssetOptimizationMiddleware
 
   def call(env)
     status, headers, response = @app.call(env)
-    
+
     # Add performance headers for CSS files
-    if env['PATH_INFO'].include?('.css')
-      headers['X-Content-Type-Options'] = 'nosniff'
-      headers['Cache-Control'] = 'public, max-age=31536000, immutable' # 1 year
+    if env["PATH_INFO"].include?(".css")
+      headers["X-Content-Type-Options"] = "nosniff"
+      headers["Cache-Control"] = "public, max-age=31536000, immutable" # 1 year
     end
-    
-    [status, headers, response]
+
+    [ status, headers, response ]
   end
 end
 

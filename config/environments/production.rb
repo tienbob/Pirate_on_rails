@@ -16,7 +16,7 @@ Rails.application.configure do
   config.action_controller.perform_caching = true
 
   # Cache assets for far-future expiry since they are all digest stamped.
-  config.public_file_server.headers = { 
+  config.public_file_server.headers = {
     "cache-control" => "public, max-age=#{1.year.to_i}",
     "expires" => 1.year.from_now.to_formatted_s(:rfc822)
   }
@@ -75,8 +75,8 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: "localhost", port: 80 }
 
   config.action_mailer.smtp_settings = {
-    user_name: ENV['SMTP_USER_NAME'],
-    password: ENV['SMTP_PASSWORD'],
+    user_name: ENV["SMTP_USER_NAME"],
+    password: ENV["SMTP_PASSWORD"],
     address: "smtp.gmail.com",
     port: 587,
     authentication: :plain,
@@ -97,30 +97,30 @@ Rails.application.configure do
 
   # Action Cable configuration for WebSocket connections
   config.action_cable.allowed_request_origins = [
-    'http://localhost:3000', 'https://localhost:3000', 
-    'http://localhost', 'https://localhost',
-    'http://localhost:80', 'https://localhost:443'
+    "http://localhost:3000", "https://localhost:3000",
+    "http://localhost", "https://localhost",
+    "http://localhost:80", "https://localhost:443"
   ]
-  config.action_cable.url = '/cable'
-  config.action_cable.mount_path = '/cable'
-  
+  config.action_cable.url = "/cable"
+  config.action_cable.mount_path = "/cable"
+
   # Disable request forgery protection for Action Cable in Docker environment
   config.action_cable.disable_request_forgery_protection = true
 
   # Configure for reverse proxy (Nginx)
   config.force_ssl = false
   config.assume_ssl = false
-  
+
   # Trust proxy headers from Nginx
   config.action_dispatch.trusted_proxies = ActionDispatch::RemoteIp::TRUSTED_PROXIES + [
     IPAddr.new("172.0.0.0/8"),  # Docker network range
     IPAddr.new("10.0.0.0/8"),   # Private network range
     IPAddr.new("192.168.0.0/16") # Private network range
   ]
-  
+
   # Disable CSRF origin check for proxy requests
   config.action_controller.forgery_protection_origin_check = false
-  
+
   # Temporarily disable CSRF protection entirely for testing
   config.action_controller.allow_forgery_protection = false
 

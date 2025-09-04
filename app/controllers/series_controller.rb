@@ -2,14 +2,14 @@ require_dependency "searchable"
 class SeriesController < ApplicationController
   include Searchable
   before_action :authenticate_user!
-  before_action :require_admin, only: [:new, :create, :edit, :update, :destroy]
-  after_action :verify_authorized, except: [:index, :show]
-  after_action :verify_policy_scoped, only: [:index]
+  before_action :require_admin, only: [ :new, :create, :edit, :update, :destroy ]
+  after_action :verify_authorized, except: [ :index, :show ]
+  after_action :verify_policy_scoped, only: [ :index ]
 
   # Only allow admins to perform certain actions
   def require_admin
     unless current_user && current_user.admin?
-      redirect_to series_index_path, alert: 'You are not authorized to perform this action.'
+      redirect_to series_index_path, alert: "You are not authorized to perform this action."
     end
   end
 
@@ -22,15 +22,15 @@ class SeriesController < ApplicationController
     q_blank = !params[:q].present? || params[:q].strip == ""
     tags_blank = !params[:tags].present? || Array(params[:tags]).all? { |t| t.blank? }
 
-    if params[:search_type] == 'episode' && (!q_blank || !tags_blank)
+    if params[:search_type] == "episode" && (!q_blank || !tags_blank)
       movies = search_movies(params)
       @movies = policy_scope(movies).page(page).per(per_page)
       @series = [] # Prevent nil error in _results.html.erb
       respond_to do |format|
         format.html { render :index }
-        format.turbo_stream { render partial: 'movies/results', locals: { movies: @movies } }
+        format.turbo_stream { render partial: "movies/results", locals: { movies: @movies } }
       end
-    elsif (!q_blank || !tags_blank)
+    elsif !q_blank || !tags_blank
       # Efficient search with proper pagination - avoid loading all records
       search_scope = policy_scope(search_series(params))
 
@@ -71,17 +71,17 @@ class SeriesController < ApplicationController
     @series = Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
       Series.includes(:tags).find_by(id: params[:id])  # Removed movies eager loading
     end
-    
+
     # Optimize episodes query with cached pagination data
     page = (params[:page] || 1).to_i
     per_page = 8
-    
+
     # Cache the total episodes count
     total_episodes_key = "series_#{@series.id}_total_episodes"
     total_episodes = Rails.cache.fetch(total_episodes_key, expires_in: 30.minutes) do
       @series.movies.count
     end
-    
+
     # Get paginated episodes efficiently - minimal includes
     episodes_start = Time.current
     @episodes = @series.movies
@@ -89,7 +89,7 @@ class SeriesController < ApplicationController
       .order(:release_date)
       .page(page)
       .per(per_page)
-      
+
     # Manually set total count to avoid extra queries
     @episodes.instance_variable_set(:@total_count, total_episodes)
     Rails.logger.info "Episodes query took: #{((Time.current - episodes_start) * 1000).round(2)}ms"
@@ -106,7 +106,7 @@ class SeriesController < ApplicationController
     if @series.save
       expire_series_cache(@series)
       expire_series_index_cache
-      redirect_to @series, notice: 'Series was successfully created.'
+      redirect_to @series, notice: "Series was successfully created."
     else
       render :new
     end
@@ -130,7 +130,7 @@ class SeriesController < ApplicationController
       end
       expire_series_cache(@series)
       expire_series_index_cache
-      redirect_to @series, notice: 'Series was successfully updated.'
+      redirect_to @series, notice: "Series was successfully updated."
     else
       render :edit
     end
@@ -142,7 +142,7 @@ class SeriesController < ApplicationController
     expire_series_cache(@series)
     expire_series_index_cache
     @series.destroy
-    redirect_to series_index_path, notice: 'Series was successfully deleted.'
+    redirect_to series_index_path, notice: "Series was successfully deleted."
   end
 
   private
@@ -151,7 +151,7 @@ class SeriesController < ApplicationController
   def expire_series_cache(series)
     # Clear series count cache
     Rails.cache.delete("series_total_count")
-    
+
     # Clear series-specific caches (updated cache key)
     Rails.cache.delete("series_#{series.id}_with_tags_only")
     Rails.cache.delete("series_#{series.id}_with_associations")  # Keep for backward compatibility
@@ -161,19 +161,19 @@ class SeriesController < ApplicationController
     Rails.cache.delete("series_#{series.id}_image_url_v4")
     Rails.cache.delete("series_#{series.id}_image_url_v5")
     Rails.cache.delete("series_#{series.id}_total_episodes")
-    
+
     # Clear view fragment caches
     Rails.cache.delete("series_#{series.id}_show_v2")
-    
+
     # Clear ActiveStorage blob URL caches if image is attached
     if series.img.attached?
       Rails.cache.delete_matched("blob_url_#{series.img.key}_*")
     end
-    
+
     # Clear paginated episode caches (use cached count to avoid DB query)
     cached_count = Rails.cache.read("series_#{series.id}_total_episodes") || 0
     total_pages = (cached_count / 8.0).ceil
-    (1..[total_pages, 1].max).each do |page|
+    (1..[ total_pages, 1 ].max).each do |page|
       Rails.cache.delete("series_#{series.id}_episodes_page_#{page}")
       Rails.cache.delete("series_#{series.id}_episodes_page_#{page}_v2")
       Rails.cache.delete("series_#{series.id}_episodes_page_#{page}_v3")
@@ -184,11 +184,11 @@ class SeriesController < ApplicationController
   def expire_series_index_cache
     # Clear series count cache
     Rails.cache.delete("series_total_count")
-    
+
     # Clear cached pagination data
     (1..10).each do |page|
-      Rails.cache.delete(["series_index", page])
-      Rails.cache.delete(["series_index_ids", page])
+      Rails.cache.delete([ "series_index", page ])
+      Rails.cache.delete([ "series_index_ids", page ])
     end
   end
 

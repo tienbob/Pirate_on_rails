@@ -4,7 +4,7 @@
 #
 
 # Seed tags
-tag_names = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Documentary", "Fantasy", "Adventure"]
+tag_names = [ "Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Documentary", "Fantasy", "Adventure" ]
 tags = tag_names.map { |name| Tag.find_or_create_by!(name: name, description: "#{name} movies") }
 
 # Seed movies
@@ -13,7 +13,7 @@ require 'date'
   title = "Movie ##{i+1}"
   description = "This is the description for #{title}. It is a great film in the #{tag_names.sample} genre."
   release_date = Date.today - rand(1000)
-  is_pro = [true, false].sample
+  is_pro = [ true, false ].sample
   movie = Movie.new(title: title, description: description, release_date: release_date, is_pro: is_pro)
   movie.video_file.attach(
     io: File.open(Rails.root.join('movie/sumpoc_12.mp4')),
