@@ -2,9 +2,10 @@ require "test_helper"
 
 class MovieTagTest < ActiveSupport::TestCase
   test "associations" do
-    movie = create(:movie)
-    tag = create(:tag)
-    mt = create(:movie_tag, movie: movie, tag: tag)
+    # Use fixtures instead of factories to avoid MessageVerifier issues
+    movie = movies(:movie1)
+    tag = Tag.create!(name: "Action")
+    mt = MovieTag.create!(movie: movie, tag: tag)
     assert_equal movie, mt.movie
     assert_equal tag, mt.tag
   end

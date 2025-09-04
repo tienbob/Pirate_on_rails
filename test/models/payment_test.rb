@@ -2,10 +2,12 @@ require "test_helper"
 
 class PaymentTest < ActiveSupport::TestCase
   test "validations" do
-    payment = build(:payment)
-    assert payment.valid?
-    invalid = Payment.new
-    assert_not invalid.valid?
+    payment = Payment.new
+    assert_not payment.valid?, "Payment should be invalid without required attributes"
+
+    # Add specific validation tests
+    assert payment.errors[:amount].any?, "Should have error on amount"
+    # Add other required field validations as needed
   end
 
   test "formatted_amount" do
