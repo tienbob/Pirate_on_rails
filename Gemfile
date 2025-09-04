@@ -39,6 +39,7 @@ gem 'whenever', require: false
 
 gem "sidekiq"
 gem "redis"
+gem 'brakeman'
 
 # Use Stripe for payment processing [https://stripe.com/docs/api]
 gem "stripe", "~> 5.0"
@@ -100,7 +101,8 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
   gem 'pundit-matchers'
+  gem 'factory_bot_rails'
 end
 
-gem "pg", group: :production
+gem "pg"
 
