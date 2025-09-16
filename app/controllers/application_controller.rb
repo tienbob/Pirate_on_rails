@@ -2,14 +2,13 @@ class ApplicationController < ActionController::Base
   allow_browser versions: :modern
   before_action :configure_permitted_parameters, if: :devise_controller?
   # Temporarily disabled for performance debugging
-  # before_action :log_user_activity_optimized
+  before_action :log_user_activity_optimized
 
   include Pundit::Authorization
-  # Temporarily disabled CSRF protection for proxy testing
-  # protect_from_forgery with: :exception, prepend: true
+  protect_from_forgery with: :exception
 
   # Security headers
-  # before_action :set_security_headers  # Temporarily disabled to debug performance
+  before_action :set_security_headers  # Temporarily disabled to debug performance
 
   rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
   rescue_from ActiveRecord::RecordNotFound, with: :record_not_found

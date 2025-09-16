@@ -45,7 +45,9 @@ class StripeWebhookHandler
       currency: "usd",
       status: "completed",
       stripe_charge_id: "subscription_#{subscription.id}",
-      metadata: { event_type: "subscription_created", subscription_id: subscription.id, current_period_start: subscription["current_period_start"], current_period_end: subscription["current_period_end"] }.to_json
+      metadata: { event_type: "subscription_created", subscription_id: subscription.id, 
+      current_period_start: subscription["current_period_start"], current_period_end: subscription["current_period_end"] 
+    }.to_json
     )
 
     user.update!(role: "pro")
