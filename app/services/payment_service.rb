@@ -103,12 +103,12 @@ class PaymentService
       )
 
       # Safely get the end date
-      end_date = 
+      end_date =
         if cancelled_subscription.respond_to?(:current_period_end) && cancelled_subscription.current_period_end
                Time.at(cancelled_subscription.current_period_end).strftime("%B %d, %Y")
         else
                "the end of your current billing period"
-      end
+        end
       {
         success: true,
         message: "Your subscription has been cancelled and will not renew. You'll continue to have Pro access until #{end_date}."
