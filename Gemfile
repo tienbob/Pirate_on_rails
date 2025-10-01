@@ -42,7 +42,7 @@ gem "redis"
 gem "brakeman"
 
 # Use Stripe for payment processing [https://stripe.com/docs/api]
-gem "stripe", "~> 5.0"
+gem "stripe", "~> 16.0"
 
 # Use Devise for user authentication
 gem "devise", "~> 4.8"
