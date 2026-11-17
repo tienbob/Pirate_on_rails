@@ -8,7 +8,7 @@ Rails.application.configure do
         ActiveRecord::ConnectionAdapters::SQLite3Adapter.class_eval do
           def configure_connection
             super
-            
+
             # Apply performance optimizations to every new connection
             execute("PRAGMA cache_size = -64000")      # 64MB cache
             execute("PRAGMA temp_store = memory")      # Memory temp storage
@@ -18,7 +18,7 @@ Rails.application.configure do
             execute("PRAGMA busy_timeout = 30000")     # 30 second busy timeout
             execute("PRAGMA wal_autocheckpoint = 1000") # Auto checkpoint
             execute("PRAGMA optimize")                 # Optimize query planner stats
-            
+
             Rails.logger.debug "SQLite connection optimized"
           end
         end

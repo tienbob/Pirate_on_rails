@@ -8,13 +8,13 @@ module MovieHelper
       nil
     end
   end
-  
+
   # Get video file size for display
   def movie_video_size(movie)
     if movie.video_file.attached?
       number_to_human_size(movie.video_file.blob.byte_size)
     else
-      'Unknown'
+      "Unknown"
     end
   end
 end

@@ -18,7 +18,7 @@ class SubscriptionService
         # Get subscriptions with cached customer ID
         subscriptions = Stripe::Subscription.list({
           customer: customer_id,
-          status: 'active',  # Only get active subscriptions for faster response
+          status: "active",  # Only get active subscriptions for faster response
           limit: 1  # We only need the first active one
         })
 
@@ -27,17 +27,17 @@ class SubscriptionService
 
         # Use helper method to safely extract subscription data
         extract_subscription_data(subscription)
-        
+
       rescue Stripe::StripeError => e
         Rails.logger.error "Error fetching subscription info for user #{user.email}: #{e.message}"
-        fallback_subscription_data('error_loading')
+        fallback_subscription_data("error_loading")
       rescue NoMethodError => e
         Rails.logger.error "NoMethodError in subscription info for user #{user.email}: #{e.message}"
-        fallback_subscription_data('method_error')
+        fallback_subscription_data("method_error")
       rescue StandardError => e
         Rails.logger.error "Unexpected error fetching subscription info for user #{user.email}: #{e.message}"
         Rails.logger.error e.backtrace.join("\n") if Rails.env.development?
-        fallback_subscription_data('unexpected_error')
+        fallback_subscription_data("unexpected_error")
       end
     end
 
@@ -47,10 +47,10 @@ class SubscriptionService
       subscription_info = Rails.cache.fetch(cache_key, expires_in: 15.minutes) do
         get_user_subscription_info(user)
       end
-      
+
       # Schedule background refresh if cache is older than 5 minutes (increased threshold)
       schedule_background_refresh(user)
-      
+
       if subscription_info.nil?
         # Use dynamic fallback data based on user's payment history
         generate_dynamic_fallback_data(user)
@@ -64,29 +64,29 @@ class SubscriptionService
 
       ActiveRecord::Base.transaction do
         customer_search = Stripe::Customer.search({ query: "email:'#{user.email}'" })
-        
+
         if customer_search.data.empty?
           # No Stripe customer found, ensure user is free
-          user.update!(role: 'free') if user.pro?
+          user.update!(role: "free") if user.pro?
           return
         end
 
         customer = customer_search.data.first
         subscriptions = Stripe::Subscription.list({
           customer: customer.id,
-          status: 'all',
+          status: "all",
           limit: 10
         })
 
         # Find active subscription
         active_subscription = subscriptions.data.find { |sub| %w[active trialing].include?(sub.status) }
-        
+
         if active_subscription
           # User has active subscription, should be pro
-          user.update!(role: 'pro') unless user.pro?
+          user.update!(role: "pro") unless user.pro?
         else
           # No active subscription, should be free
-          user.update!(role: 'free') if user.pro?
+          user.update!(role: "free") if user.pro?
         end
       end
     rescue Stripe::StripeError => e
@@ -98,7 +98,7 @@ class SubscriptionService
     def schedule_background_refresh(user)
       last_refresh_key = "last_refresh:#{user.id}"
       last_refresh = Rails.cache.read(last_refresh_key)
-      
+
       if last_refresh.nil? || last_refresh < 5.minutes.ago
         RefreshSubscriptionJob.perform_later(user.id)
         # Increased cache expiration for last refresh tracking
@@ -108,27 +108,27 @@ class SubscriptionService
     end
 
     def generate_dynamic_fallback_data(user)
-      latest_payment = Payment.where(user: user, status: 'completed')
+      latest_payment = Payment.where(user: user, status: "completed")
                              .order(created_at: :desc)
                              .first
-      
+
       # Dynamic fallback using user's actual payment data
       {
-        status: 'active',
-        subscription_id: 'loading...',
+        status: "active",
+        subscription_id: "loading...",
         next_billing_date: latest_payment ? latest_payment.created_at + 1.month : 1.month.from_now,
         amount: latest_payment&.amount || 9.99,
-        currency: latest_payment&.currency&.upcase || 'SGD',
-        interval: 'month'
+        currency: latest_payment&.currency&.upcase || "SGD",
+        interval: "month"
       }
     end
 
     def extract_subscription_data(subscription)
       subscription_item = subscription.items.data.first
-      
+
       # Safely get next billing date
       next_billing_date = calculate_next_billing_date(subscription, subscription_item)
-      
+
       {
         subscription_id: subscription.id,
         status: subscription.status,
@@ -147,20 +147,20 @@ class SubscriptionService
       if subscription.respond_to?(:current_period_end) && subscription.current_period_end
         return Time.at(subscription.current_period_end)
       end
-      
+
       if subscription_item&.respond_to?(:current_period_end) && subscription_item.current_period_end
         return Time.at(subscription_item.current_period_end)
       end
-      
+
       # Fallback: calculate based on creation time and interval
       interval = safe_interval(subscription_item)
       created_time = safe_timestamp(subscription, :created, Time.current)
-      
+
       case interval
-      when 'month' then created_time + 1.month
-      when 'year' then created_time + 1.year
-      when 'week' then created_time + 1.week
-      when 'day' then created_time + 1.day
+      when "month" then created_time + 1.month
+      when "year" then created_time + 1.year
+      when "week" then created_time + 1.week
+      when "day" then created_time + 1.day
       else 1.month.from_now
       end
     rescue => e
@@ -173,11 +173,11 @@ class SubscriptionService
     end
 
     def safe_currency(subscription_item)
-      (subscription_item&.price&.currency || 'sgd').upcase
+      (subscription_item&.price&.currency || "sgd").upcase
     end
 
     def safe_interval(subscription_item)
-      subscription_item&.price&.recurring&.interval || 'month'
+      subscription_item&.price&.recurring&.interval || "month"
     end
 
     def safe_boolean(object, method, default = false)
@@ -192,13 +192,13 @@ class SubscriptionService
       end
     end
 
-    def fallback_subscription_data(error_type = 'unknown')
+    def fallback_subscription_data(error_type = "unknown")
       {
         subscription_id: error_type,
-        status: 'active',
+        status: "active",
         amount: 9.99,
-        currency: 'SGD',
-        interval: 'month',
+        currency: "SGD",
+        interval: "month",
         next_billing_date: 1.month.from_now,
         cancel_at_period_end: false,
         cancelled_at: nil,

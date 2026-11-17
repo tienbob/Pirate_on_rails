@@ -41,9 +41,9 @@ module Searchable
       if tags.present?
         tags.each do |tag|
           search_conditions << { nested: {
-            path: 'tags',
+            path: "tags",
             query: { match: { 'tags.name': tag } }
-          }}
+          } }
         end
       end
       # If any search conditions, use Elasticsearch; else return all movies
@@ -81,8 +81,8 @@ module Searchable
         query = params[:q]
         tags = params[:tags]
         # Fix for tags submitted as a single comma-separated string
-        if tags.is_a?(Array) && tags.size == 1 && tags.first.include?(',')
-          tags = tags.first.split(',').map(&:strip)
+        if tags.is_a?(Array) && tags.size == 1 && tags.first.include?(",")
+          tags = tags.first.split(",").map(&:strip)
         end
         search_conditions = []
         # Add title match if present
@@ -93,15 +93,15 @@ module Searchable
         if tags.present?
           tags.each do |tag|
             search_conditions << { nested: {
-              path: 'tags',
+              path: "tags",
               query: { match: { 'tags.name': tag } }
-            }}
+            } }
           end
         end
         # If any search conditions, use Elasticsearch; else return all series
         if search_conditions.any?
           Rails.logger.info "ElasticSearch: Searching series with conditions: #{search_conditions.inspect}"
-          
+
           # Use Elasticsearch search with size limit to avoid loading everything
           search_results = Series.__elasticsearch__.search({
             query: {
@@ -111,7 +111,7 @@ module Searchable
             },
             size: 1000  # Reasonable limit to prevent memory issues
           })
-          
+
           series_ids = search_results.records.map(&:id)
           ar_series = Series.includes(:tags, movies: :tags).where(id: series_ids)
           Rails.logger.info "ElasticSearch: Found #{ar_series.count} series matching conditions."
@@ -125,7 +125,7 @@ module Searchable
       # Log error details for debugging
       Rails.logger.error "Elasticsearch search_series error: #{e.class} - #{e.message}"
       Rails.logger.error e.backtrace.join("\n") if e.backtrace
-      
+
       # Fallback to database search instead of crashing
       Rails.logger.info "Falling back to database search"
       fallback_search_series(params)
@@ -138,24 +138,24 @@ module Searchable
   def fallback_search_series(params)
     query = params[:q]
     tags = params[:tags]
-    
+
     # Fix for tags submitted as a single comma-separated string
-    if tags.is_a?(Array) && tags.size == 1 && tags.first.include?(',')
-      tags = tags.first.split(',').map(&:strip)
+    if tags.is_a?(Array) && tags.size == 1 && tags.first.include?(",")
+      tags = tags.first.split(",").map(&:strip)
     end
-    
+
     series_scope = Series.includes(:tags, movies: :tags)
-    
+
     # Add title search if present
     if query.present?
       series_scope = series_scope.where("title ILIKE ?", "%#{query}%")
     end
-    
+
     # Add tag search if present
     if tags.present?
       series_scope = series_scope.joins(:tags).where(tags: { name: tags })
     end
-    
+
     series_scope
   end
 end

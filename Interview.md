@@ -18,7 +18,7 @@ The Idea: Instead of writing SELECT * FROM users WHERE status = 'active', you ju
 all_users = User.all
 
 # Instead of: "SELECT * FROM users WHERE id = 1 LIMIT 1"
-user = User.find(1)
+user = User.find_by(1)
 
 # Instead of: "SELECT * FROM users WHERE role = 'admin' AND status = 'active'"
 admins = User.where(role: 'admin', status: 'active')
@@ -58,13 +58,13 @@ Why it's Magical:
 
 ```ruby
 # Find a user
-user = User.find(10)
+user = User.find_by(10)
 
 # GET ALL POSTS FOR THAT USER WITHOUT WRITING A SQL JOIN!
 all_posts_of_user = user.posts # ActiveRecord automatically translates this to the right SQL
 
 # Get a post and see who the author is
-post = Post.find(50)
+post = Post.find_by(50)
 author = post.user # ActiveRecord finds the corresponding user automatically
 
 ```
@@ -149,7 +149,7 @@ class PostsController < ApplicationController
 
   def set_post
     # 1. Tell the Model to find a post by the `id` from the URL
-    @post = Post.find(params[:id])
+    @post = Post.find_by(params[:id])
   end
 end
 ```

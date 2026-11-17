@@ -3,9 +3,9 @@ Rails.application.configure do
   # Set Stripe API key from credentials
   if Rails.application.credentials.stripe
     Stripe.api_key = Rails.application.credentials.stripe[:secret_key]
-    Stripe.api_version = '2023-10-16' # Use a specific API version for consistency
-  elsif ENV['STRIPE_SERVER_API_KEY']
-    Stripe.api_key = ENV['STRIPE_SERVER_API_KEY']
+    Stripe.api_version = "2023-10-16" # Use a specific API version for consistency
+  elsif ENV["STRIPE_SERVER_API_KEY"]
+    Stripe.api_key = ENV["STRIPE_SERVER_API_KEY"]
   else
     Rails.logger.warn "Stripe credentials not found. Payment functionality will be disabled."
   end
@@ -13,11 +13,11 @@ end
 
 # Stripe webhook signature verification
 module StripeHelper
-  WEBHOOK_SECRET = Rails.application.credentials.dig(:stripe, :webhook_secret) || ENV['STRIPE_WEBHOOK_SECRET']
-  
+  WEBHOOK_SECRET = Rails.application.credentials.dig(:stripe, :webhook_secret) || ENV["STRIPE_WEBHOOK_SECRET"]
+
   def self.verify_webhook(payload, signature)
     return false unless WEBHOOK_SECRET
-    
+
     begin
       Stripe::Webhook.construct_event(payload, signature, WEBHOOK_SECRET)
       true
@@ -25,7 +25,7 @@ module StripeHelper
       false
     end
   end
-  
+
   def self.create_customer(user)
     Stripe::Customer.create(
       email: user.email,
@@ -39,7 +39,7 @@ module StripeHelper
     Rails.logger.error "Failed to create Stripe customer: #{e.message}"
     nil
   end
-  
+
   def self.retrieve_safe(stripe_id, type = :customer)
     case type
     when :customer
@@ -59,6 +59,6 @@ end
 
 # Price configuration
 STRIPE_PRICES = {
-  monthly: ENV.fetch('STRIPE_MONTHLY_PRICE_ID', 'price_monthly_default'),
-  yearly: ENV.fetch('STRIPE_YEARLY_PRICE_ID', 'price_yearly_default')
+  monthly: ENV.fetch("STRIPE_MONTHLY_PRICE_ID", "price_monthly_default"),
+  yearly: ENV.fetch("STRIPE_YEARLY_PRICE_ID", "price_yearly_default")
 }.freeze

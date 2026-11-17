@@ -1,8 +1,8 @@
-require 'logger'
+require "logger"
 
 class FilteredLogger < Logger
   def warn(message = nil, &block)
-    return if message&.include?('deprecated') # Filter out deprecation warnings
+    return if message&.include?("deprecated") # Filter out deprecation warnings
     super
   end
 end

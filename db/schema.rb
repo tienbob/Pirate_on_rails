@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_14_000001) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_22_023212) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -113,9 +113,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_14_000001) do
 #   Unknown type '' for column 'tbl'
 
 
-# Could not dump table "sqlite_stat4" because of following StandardError
-#   Unknown type '' for column 'tbl'
-
+  create_table "stripe_events", force: :cascade do |t|
+    t.string "event_id", null: false
+    t.string "event_type"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_stripe_events_on_event_id", unique: true
+  end
 
   create_table "tags", force: :cascade do |t|
     t.string "name"
@@ -141,6 +145,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_14_000001) do
     t.datetime "remember_created_at"
     t.datetime "last_seen_at"
     t.integer "login_count", default: 0
+    t.string "confirmation_token"
+    t.datetime "confirmed_at"
+    t.datetime "confirmation_sent_at"
+    t.string "unconfirmed_email"
+    t.index ["confirmation_token"], name: "index_users_on_confirmation_token", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["last_seen_at"], name: "index_users_on_last_seen_at"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true

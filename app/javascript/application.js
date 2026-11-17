@@ -21,7 +21,6 @@ application.register("series-form", SeriesFormController)
 application.register("form-validation", FormValidationController)
 application.register("video-analytics", VideoAnalyticsController)
 application.register("file-upload", FileUploadController)
-
 // Initialize Action Cable and assign to window.App.cable for global access
 import { createConsumer } from "@rails/actioncable";
 window.App ||= {};

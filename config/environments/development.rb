@@ -33,15 +33,15 @@ Rails.application.configure do
 
   # Store uploaded files on the local file system (see config/storage.yml for options).
   config.active_storage.service = :local
-  
+
   # ActiveStorage performance optimizations for development
   config.active_storage.variant_processor = :mini_magick
   # Use redirect to avoid signed URL expiration issues that cause 404s
   config.active_storage.resolve_model_to_route = :rails_storage_redirect
-  
+
   # Disable variant tracking in development for better performance
   config.active_storage.track_variants = false
-  
+
   # Video streaming optimizations to prevent memory issues
   config.active_storage.video_preview_arguments = "-y -vframes 1 -f image2"
 
@@ -78,7 +78,7 @@ Rails.application.configure do
 
   # Allow Action Cable access from any origin (for development)
   config.action_cable.disable_request_forgery_protection = true
-  config.action_cable.mount_path = '/cable'
+  config.action_cable.mount_path = "/cable"
   config.action_cable.allowed_request_origins = [ /http:\/\/.*/ ]
 
   # Raise error when a before_action's only/except options reference missing actions.
